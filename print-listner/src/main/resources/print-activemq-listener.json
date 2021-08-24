@@ -1,0 +1,11 @@
+{
+    "printMQ": [{
+        "name": "PRINT LISTENER",
+        "brokerUrl": "tcp://togo-sandbox.mosip.net:30616",
+        "inboundQueueName": "print-to-listener",
+        "outboundQueueName": "",
+        "userName": "admin",
+        "password": "abc123",
+        "typeOfQueue": "ACTIVEMQ"
+    }]
+}
