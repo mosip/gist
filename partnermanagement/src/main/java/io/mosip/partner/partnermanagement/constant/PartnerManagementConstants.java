@@ -1,4 +1,4 @@
-package io.mosip.partner.partnermanagement.consent;
+package io.mosip.partner.partnermanagement.constant;
 
 import lombok.Getter;
 

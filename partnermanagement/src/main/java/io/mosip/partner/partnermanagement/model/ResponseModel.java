@@ -1,6 +1,6 @@
-package io.mosip.partner.partnermanagement.dto;
+package io.mosip.partner.partnermanagement.model;
 
-import io.mosip.partner.partnermanagement.consent.PartnerManagementConstants;
+import io.mosip.partner.partnermanagement.constant.PartnerManagementConstants;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;

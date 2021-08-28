@@ -1,4 +1,4 @@
-package io.mosip.partner.partnermanagement.dto;
+package io.mosip.partner.partnermanagement.model;
 
 import lombok.Data;
 import lombok.Getter;
