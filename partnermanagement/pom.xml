@@ -94,6 +94,12 @@
 			<artifactId>gson</artifactId>
 			<version>${google.gson.version}</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcutil-jdk15on -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcutil-jdk15on</artifactId>
+			<version>1.69</version>
+		</dependency>
 	</dependencies>
 
 	<build>

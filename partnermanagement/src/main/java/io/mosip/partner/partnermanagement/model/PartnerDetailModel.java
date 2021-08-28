@@ -1,5 +1,6 @@
 package io.mosip.partner.partnermanagement.model;
 
+import io.mosip.partner.partnermanagement.constant.PartnerTypes;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,5 +16,5 @@ public class PartnerDetailModel {
     private String partnerOrganizationName;
     private String partnerType;
     private String policyGroup;
-
+    private PartnerTypes partnerDomain;
 }
