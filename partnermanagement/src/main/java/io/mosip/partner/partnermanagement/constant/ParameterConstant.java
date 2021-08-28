@@ -6,7 +6,8 @@ public enum ParameterConstant {
     AUTHENTICATION_PASSWORD("mosip.authenticate.password"),
     AUTHENTICATION_API_URL("mosip.authenticate.api"),
     AUTHENTICATION_REQUEST_ID("mosip.authenticate.request.id"),
-    AUTHENTICATION_VERSION_ID("mosip.authenticate.request.version");
+    AUTHENTICATION_VERSION_ID("mosip.authenticate.request.version"),
+    PARTNER_APPID("mosip.partner.api");
 
     private final String value;
 

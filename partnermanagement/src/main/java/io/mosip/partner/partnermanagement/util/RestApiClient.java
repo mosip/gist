@@ -63,7 +63,7 @@ public class RestApiClient {
 	private Logger logger = PartnerManagementLogger.getLogger(RestApiClient.class);
 
 	/** Request Wrapper */
-	RequestWrapper<LoginUser> loginRequest;
+	RequestWrapper<Object> loginRequest;
 
 	LoginType loginType;
 
@@ -76,7 +76,7 @@ public class RestApiClient {
 
 	private static final String AUTHORIZATION = "Authorization=";
 
-	public void setLoginRequestData(LoginType loginType, RequestWrapper<LoginUser> request) {
+	public void setLoginRequestData(LoginType loginType, RequestWrapper<Object> request) {
 		System.setProperty("token", "");
 		this.loginType = loginType;
 		this.loginRequest = request;
@@ -305,7 +305,7 @@ public class RestApiClient {
 			postingString = new StringEntity(gson.toJson(loginRequest));
 		}
 
-		HttpPost post = new HttpPost(environment.getProperty(apiUrl));
+		HttpPost post = new HttpPost(apiUrl);
 		try {
 			post.setEntity(postingString);
 			post.setHeader("Content-type", "application/json");

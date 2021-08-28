@@ -6,5 +6,5 @@ import io.mosip.partner.partnermanagement.model.authmodel.LoginUser;
 import io.mosip.partner.partnermanagement.model.http.RequestWrapper;
 
 public interface PartnerCreationService {
-    public ResponseModel createPartner(PartnerDetailModel partnerModel);
+    public ResponseModel createPartner(Object partnerModel);
 }

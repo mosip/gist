@@ -4,6 +4,7 @@ package io.mosip.partner.partnermanagement.constant;
 public enum LoggerFileConstant {
 
 	SUCCESS("SUCCESS", "SUCCESS"),
+	FAIL("FAIL", "FAIL"),
 	SESSIONID("SESSIONID", "SESSIONID"),
 	APPLICATIONID("APPLICATIONID", "PARTNER_MANAGER");
 

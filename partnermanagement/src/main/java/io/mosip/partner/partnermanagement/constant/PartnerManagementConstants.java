@@ -4,7 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum PartnerManagementConstants {
-    SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-001", "Partner Creation Successful");
+    SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-001", "Partner Creation Successful"),
+    FAIL(LoggerFileConstant.FAIL, "PMD-FAL-001", "Partner Creation Un-Successful");
 
     public final LoggerFileConstant errorStatus;
     public final String errorCode;
