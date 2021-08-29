@@ -31,4 +31,7 @@ public class PartnerRequest{
 	
 	@NotEmpty(message="Please provide partner Type")
 	public String partnerType;
+
+	@NotEmpty(message="Please provide Policy Name")
+	public String policyName;
 }

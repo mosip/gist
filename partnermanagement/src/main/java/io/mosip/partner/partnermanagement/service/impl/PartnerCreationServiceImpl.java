@@ -5,10 +5,17 @@ import io.mosip.partner.partnermanagement.constant.PartnerManagementConstants;
 import io.mosip.partner.partnermanagement.logger.PartnerManagementLogger;
 import io.mosip.partner.partnermanagement.model.PartnerDetailModel;
 import io.mosip.partner.partnermanagement.model.ResponseModel;
+import io.mosip.partner.partnermanagement.model.apikey.ApiApproveReponseData;
+import io.mosip.partner.partnermanagement.model.apikey.ApiApproveRequestData;
+import io.mosip.partner.partnermanagement.model.apikey.ApiKeyReponseData;
+import io.mosip.partner.partnermanagement.model.apikey.ApiKeyRequestData;
 import io.mosip.partner.partnermanagement.model.authmodel.AuthNResponse;
 import io.mosip.partner.partnermanagement.model.authmodel.AuthNResponseDto;
 import io.mosip.partner.partnermanagement.model.authmodel.LoginUser;
 import io.mosip.partner.partnermanagement.model.certificate.CertificateChainResponseDto;
+import io.mosip.partner.partnermanagement.model.certificate.CertificateResponseData;
+import io.mosip.partner.partnermanagement.model.certificate.PartnerCertificateRequestData;
+import io.mosip.partner.partnermanagement.model.certificate.PartnerCertificateResponseData;
 import io.mosip.partner.partnermanagement.model.http.RequestWrapper;
 import io.mosip.partner.partnermanagement.model.http.ResponseWrapper;
 import io.mosip.partner.partnermanagement.model.partner.PartnerResponse;
@@ -23,6 +30,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -86,11 +94,82 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
 
     @Override
     public ResponseModel uploadCACertificates(Object request) {
-        ResponseWrapper<CertificateUploadResponse> response = null;
+        ResponseWrapper<CertificateResponseData> response = null;
         ResponseModel responseModel = null;
         try {
             response = restApiClient.postApi(env.getProperty(ParameterConstant.PARTNER_CA_CERTIFICATE_UPLOAD.toString()),
                     MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public ResponseModel uploadPartnerCertificates(Object partnerCertificateRequest) {
+        ResponseWrapper<PartnerCertificateResponseData> response = null;
+        ResponseModel responseModel = null;
+        try {
+            response = restApiClient.postApi(env.getProperty(ParameterConstant.PARTNER_CERTIFICATE_UPLOAD.toString()),
+                    MediaType.APPLICATION_JSON, partnerCertificateRequest, ResponseWrapper.class);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public ResponseModel partnerApiRequest(Object apiRequestData, String partnerId) {
+        ResponseWrapper<ApiKeyReponseData> response = null;
+        ResponseModel responseModel = null;
+        try {
+            String apiUrl = env.getProperty(ParameterConstant.PARTNER_API_REQUEST.toString());
+            apiUrl = apiUrl.replace("{partnerID}", partnerId);
+            response = restApiClient.patchApi(apiUrl, MediaType.APPLICATION_JSON, apiRequestData, ResponseWrapper.class);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public ResponseModel approvePartnerApiRequest(Object approveRequestData, String apiId) {
+        ResponseWrapper<ApiApproveReponseData> response = null;
+        ResponseModel responseModel = null;
+        try {
+            String apiUrl = env.getProperty(ParameterConstant.PARTNER_API_APROVE_REQUEST.toString());
+            apiUrl = apiUrl.replace("{APIkey}", apiId);
+            response = restApiClient.patchApi(apiUrl, MediaType.APPLICATION_JSON, approveRequestData, ResponseWrapper.class);
 
             if (response.getResponse() != null) {
                 responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);

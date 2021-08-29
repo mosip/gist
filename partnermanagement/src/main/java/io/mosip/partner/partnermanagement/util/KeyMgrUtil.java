@@ -103,7 +103,7 @@ public class KeyMgrUtil {
     public CertificateChainResponseDto getPartnerCertificates(String partnerType, String dirPath, String organization) throws 
         NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException, IOException, CertificateException, OperatorCreationException {
 
-        String caFilePath = dirPath + '/' + partnerType + CA_P12_FILE_NAME;
+        String caFilePath = dirPath + '/' + organization + '/' + partnerType + CA_P12_FILE_NAME;
         LocalDateTime dateTime = LocalDateTime.now(); 
         LocalDateTime dateTimeExp = dateTime.plusYears(1);
         PrivateKeyEntry caPrivKeyEntry = getPrivateKeyEntry(caFilePath);
@@ -113,14 +113,14 @@ public class KeyMgrUtil {
         }
         String caCertificate = getCertificate(caPrivKeyEntry);
 
-        String interFilePath = dirPath + '/' + partnerType + INTER_P12_FILE_NAME;
+        String interFilePath = dirPath + '/' + organization + '/'+ partnerType + INTER_P12_FILE_NAME;
         PrivateKeyEntry interPrivKeyEntry = getPrivateKeyEntry(interFilePath);
         if (Objects.isNull(interPrivKeyEntry)) {
             interPrivKeyEntry = generateKeys(caPrivKeyEntry.getPrivateKey(), "CA-" + partnerType, "INTER-" + partnerType, interFilePath, keyUsage, dateTime, dateTimeExp, organization);
         }
         String interCertificate = getCertificate(interPrivKeyEntry);
 
-        String partnerFilePath = dirPath + '/' + partnerType + PARTNER_P12_FILE_NAME;
+        String partnerFilePath = dirPath + '/' + organization + '/' + partnerType + PARTNER_P12_FILE_NAME;
         PrivateKeyEntry partnerPrivKeyEntry = getPrivateKeyEntry(partnerFilePath);
         if (Objects.isNull(partnerPrivKeyEntry)) {
             if (partnerType.equalsIgnoreCase("EKYC")){

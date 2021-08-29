@@ -6,9 +6,12 @@ import io.mosip.partner.partnermanagement.constant.ParameterConstant;
 import io.mosip.partner.partnermanagement.model.PartnerDetailModel;
 import io.mosip.partner.partnermanagement.model.ResponseModel;
 import io.mosip.partner.partnermanagement.logger.PartnerManagementLogger;
+import io.mosip.partner.partnermanagement.model.apikey.ApiApproveRequestData;
+import io.mosip.partner.partnermanagement.model.apikey.ApiKeyRequestData;
 import io.mosip.partner.partnermanagement.model.authmodel.LoginUser;
 import io.mosip.partner.partnermanagement.model.certificate.CertificateChainResponseDto;
 import io.mosip.partner.partnermanagement.model.certificate.CertificateRequestData;
+import io.mosip.partner.partnermanagement.model.certificate.PartnerCertificateRequestData;
 import io.mosip.partner.partnermanagement.model.http.RequestWrapper;
 import io.mosip.partner.partnermanagement.model.http.ResponseWrapper;
 import io.mosip.partner.partnermanagement.model.partner.PartnerRequest;
@@ -81,12 +84,57 @@ public class PartnerCreationController {
             return new ResponseEntity<ResponseModel>(certificateResponseModel, HttpStatus.EXPECTATION_FAILED);
 
         CertificateChainResponseDto certificateChainResponseDto = (CertificateChainResponseDto) certificateResponseModel.getResponseData();
+
         // Upload CA Certificates
         CertificateRequestData certificateRequest = new CertificateRequestData();
         certificateRequest.setCertificateData(certificateChainResponseDto.getCaCertificate());
         certificateRequest.setPartnerDomain(partnerDetailModel.getPartnerDomain().toString());
-        ResponseModel caCertUploadResponse = partnerCreationService.uploadCACertificates(certificateRequest);
+        RequestWrapper<Object> caCertWrapper = createRequestWrapper(certificateRequest);
+        ResponseModel caCertUploadResponse = partnerCreationService.uploadCACertificates(caCertWrapper);
 
+        if (caCertUploadResponse.getStatus().equals(LoggerFileConstant.FAIL))
+            return new ResponseEntity<ResponseModel>(caCertUploadResponse, HttpStatus.EXPECTATION_FAILED);
+
+        // Upload SUB-CA Certificates
+        CertificateRequestData subCertificateRequest = new CertificateRequestData();
+        subCertificateRequest.setCertificateData(certificateChainResponseDto.getInterCertificate());
+        subCertificateRequest.setPartnerDomain(partnerDetailModel.getPartnerDomain().toString());
+        RequestWrapper<Object> subCaCertWrapper = createRequestWrapper(subCertificateRequest);
+        ResponseModel subCaCertUploadResponse = partnerCreationService.uploadCACertificates(subCaCertWrapper);
+
+        if (subCaCertUploadResponse.getStatus().equals(LoggerFileConstant.FAIL))
+            return new ResponseEntity<ResponseModel>(subCaCertUploadResponse, HttpStatus.EXPECTATION_FAILED);
+
+        // Upload Partner Certificate
+        PartnerCertificateRequestData partnerCertificateRequest = new PartnerCertificateRequestData();
+        partnerCertificateRequest.setCertificateData(certificateChainResponseDto.getPartnerCertificate());
+        partnerCertificateRequest.setPartnerDomain(partnerDetailModel.getPartnerDomain().toString());
+        partnerCertificateRequest.setPartnerId(partnerId);
+        RequestWrapper<Object> partnerCertWrapper = createRequestWrapper(partnerCertificateRequest);
+        ResponseModel partnerCertUploadResponse = partnerCreationService.uploadPartnerCertificates(partnerCertWrapper);
+
+        if (partnerCertUploadResponse.getStatus().equals(LoggerFileConstant.FAIL))
+            return new ResponseEntity<ResponseModel>(partnerCertUploadResponse, HttpStatus.EXPECTATION_FAILED);
+
+
+        // Submit PartnerAPI Key request Copy
+        ApiKeyRequestData apiRequestData = new ApiKeyRequestData();
+        apiRequestData.setPolicyName(partnerDetailModel.getPolicyName());
+        apiRequestData.setUseCaseDescription("");
+        RequestWrapper<Object> apiRequestWrapper = createRequestWrapper(apiRequestData);
+        ResponseModel apiResonseModel = partnerCreationService.partnerApiRequest(apiRequestWrapper, partnerId);
+
+        if (apiResonseModel.getStatus().equals(LoggerFileConstant.FAIL))
+            return new ResponseEntity<ResponseModel>(apiResonseModel, HttpStatus.EXPECTATION_FAILED);
+
+        // Approve PartnerAPI
+        ApiApproveRequestData approveRequestData = new ApiApproveRequestData();
+        approveRequestData.setStatus("Approved");
+        RequestWrapper<Object> apiApproveRequestWrapper = createRequestWrapper(approveRequestData);
+        ResponseModel approveResonseModel = partnerCreationService.approvePartnerApiRequest(apiApproveRequestWrapper, partnerId);
+
+        if (approveResonseModel.getStatus().equals(LoggerFileConstant.FAIL))
+            return new ResponseEntity<ResponseModel>(approveResonseModel, HttpStatus.EXPECTATION_FAILED);
 
 
 

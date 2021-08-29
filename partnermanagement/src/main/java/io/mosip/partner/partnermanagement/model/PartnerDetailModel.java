@@ -15,6 +15,7 @@ public class PartnerDetailModel {
     private String partnerContactNumber;
     private String partnerOrganizationName;
     private String partnerType;
-    private String policyGroup;
     private PartnerTypes partnerDomain;
+    private String policyGroup;
+    private String policyName;
 }

@@ -8,7 +8,11 @@ public enum ParameterConstant {
     AUTHENTICATION_REQUEST_ID("mosip.authenticate.request.id"),
     AUTHENTICATION_VERSION_ID("mosip.authenticate.request.version"),
     PARTNER_APPID("mosip.partner.api"),
-    PARTNER_CA_CERTIFICATE_UPLOAD("mosip.ca.certificate.upload.api");
+    PARTNER_CA_CERTIFICATE_UPLOAD("mosip.ca.certificate.upload.api"),
+    PARTNER_CERTIFICATE_UPLOAD("mosip.partner.certificate.upload.api"),
+    PARTNER_API_REQUEST("mosip.partner.api.request.api"),
+    PARTNER_API_APROVE_REQUEST("mosip.partner.api.approve.api");
+
 
     private final String value;
 
