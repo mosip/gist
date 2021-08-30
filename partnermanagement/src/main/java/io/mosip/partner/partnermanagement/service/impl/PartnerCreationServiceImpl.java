@@ -45,13 +45,13 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
                     MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
 
             if (response.getResponse() != null) {
-                responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);
+                responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_SUCCESS);
             } else {
-                responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+                responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_FAIL);
             }
             responseModel.setResponseData(response);
         } catch (Exception e) {
-            responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_FAIL);
             responseModel.setResponseData(e.getMessage());
             e.printStackTrace();
         }
@@ -86,13 +86,13 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
                     MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
 
             if (response.getResponse() != null) {
-                responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);
+                responseModel = new ResponseModel(PartnerManagementConstants.CA_SUCCESS);
             } else {
-                responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+                responseModel = new ResponseModel(PartnerManagementConstants.CA_FAIL);
             }
             responseModel.setResponseData(response);
         } catch (Exception e) {
-            responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            responseModel = new ResponseModel(PartnerManagementConstants.CA_FAIL);
             responseModel.setResponseData(e.getMessage());
             e.printStackTrace();
         }
@@ -109,13 +109,13 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
                     MediaType.APPLICATION_JSON, partnerCertificateRequest, ResponseWrapper.class);
 
             if (response.getResponse() != null) {
-                responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);
+                responseModel = new ResponseModel(PartnerManagementConstants.PC_SUCCESS);
             } else {
-                responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+                responseModel = new ResponseModel(PartnerManagementConstants.PC_FAIL);
             }
             responseModel.setResponseData(response);
         } catch (Exception e) {
-            responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            responseModel = new ResponseModel(PartnerManagementConstants.PC_FAIL);
             responseModel.setResponseData(e.getMessage());
             e.printStackTrace();
         }
@@ -133,13 +133,13 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
             response = restApiClient.patchApi(apiUrl, MediaType.APPLICATION_JSON, apiRequestData, ResponseWrapper.class);
 
             if (response.getResponse() != null) {
-                responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);
+                responseModel = new ResponseModel(PartnerManagementConstants.API_SUCCESS);
             } else {
-                responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+                responseModel = new ResponseModel(PartnerManagementConstants.API_FAIL);
             }
             responseModel.setResponseData(response.getResponse());
         } catch (Exception e) {
-            responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            responseModel = new ResponseModel(PartnerManagementConstants.API_FAIL);
             responseModel.setResponseData(e.getMessage());
             e.printStackTrace();
         }
@@ -157,13 +157,13 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
             response = restApiClient.patchApi(apiUrl, MediaType.APPLICATION_JSON, approveRequestData, ResponseWrapper.class);
 
             if (response.getResponse() != null) {
-                responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);
+                responseModel = new ResponseModel(PartnerManagementConstants.API_APPROVE_SUCCESS);
             } else {
-                responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+                responseModel = new ResponseModel(PartnerManagementConstants.API_APPROVE_FAIL);
             }
             responseModel.setResponseData(response);
         } catch (Exception e) {
-            responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            responseModel = new ResponseModel(PartnerManagementConstants.API_APPROVE_FAIL);
             responseModel.setResponseData(e.getMessage());
             e.printStackTrace();
         }
@@ -182,13 +182,13 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
             response = restApiClient.postApi(apiUrl, MediaType.APPLICATION_JSON, extractRequestWrapper, ResponseWrapper.class);
 
             if (response.getResponse() != null) {
-                responseModel = new ResponseModel(PartnerManagementConstants.SUCCESS);
+                responseModel = new ResponseModel(PartnerManagementConstants.BIO_EXTRACT_ADD_SUCCESS);
             } else {
-                responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+                responseModel = new ResponseModel(PartnerManagementConstants.BIO_EXTRACT_ADD_FAIL);
             }
             responseModel.setResponseData(response);
         } catch (Exception e) {
-            responseModel = new ResponseModel(PartnerManagementConstants.FAIL);
+            responseModel = new ResponseModel(PartnerManagementConstants.BIO_EXTRACT_ADD_FAIL);
             responseModel.setResponseData(e.getMessage());
             e.printStackTrace();
         }
