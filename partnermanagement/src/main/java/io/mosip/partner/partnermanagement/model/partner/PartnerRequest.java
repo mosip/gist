@@ -2,6 +2,9 @@ package io.mosip.partner.partnermanagement.model.partner;
 
 import javax.validation.constraints.NotEmpty;
 
+import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.Example;
+import io.swagger.annotations.ExampleProperty;
 import lombok.Data;
 
 /**

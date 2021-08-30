@@ -9,17 +9,17 @@ import io.mosip.partner.partnermanagement.logger.PartnerManagementLogger;
 import io.mosip.partner.partnermanagement.model.apikey.ApiApproveRequestData;
 import io.mosip.partner.partnermanagement.model.apikey.ApiKeyRequestData;
 import io.mosip.partner.partnermanagement.model.authmodel.LoginUser;
+import io.mosip.partner.partnermanagement.model.biometricextractors.Extractors;
+import io.mosip.partner.partnermanagement.model.biometricextractors.ExtractorsRequestData;
 import io.mosip.partner.partnermanagement.model.certificate.CertificateChainResponseDto;
 import io.mosip.partner.partnermanagement.model.certificate.CertificateRequestData;
 import io.mosip.partner.partnermanagement.model.certificate.PartnerCertificateRequestData;
 import io.mosip.partner.partnermanagement.model.http.RequestWrapper;
 import io.mosip.partner.partnermanagement.model.http.ResponseWrapper;
 import io.mosip.partner.partnermanagement.model.partner.PartnerRequest;
-import io.mosip.partner.partnermanagement.model.partner.PartnerResponse;
 import io.mosip.partner.partnermanagement.model.restapi.Metadata;
 import io.mosip.partner.partnermanagement.service.PartnerCreationService;
 import io.mosip.partner.partnermanagement.util.DateUtils;
-import io.mosip.partner.partnermanagement.util.KeyMgrUtil;
 import io.mosip.partner.partnermanagement.util.RestApiClient;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/")
@@ -127,11 +128,27 @@ public class PartnerCreationController {
         if (apiResonseModel.getStatus().equals(LoggerFileConstant.FAIL))
             return new ResponseEntity<ResponseModel>(apiResonseModel, HttpStatus.EXPECTATION_FAILED);
 
+        // Add Bio Extractors for Partner
+        ExtractorsRequestData extractors;
+        if (partnerDetailModel.getExtractorList() != null && partnerDetailModel.getExtractorList().getExtractors() != null && !partnerDetailModel.getExtractorList().getExtractors().isEmpty()) {
+             extractors = partnerDetailModel.getExtractorList();
+        } else {
+            ExtractorsRequestData extractorsRequestData = new ExtractorsRequestData();
+            extractors = extractorsRequestData;
+        }
+        RequestWrapper<Object> extractRequestWrapper = createRequestWrapper(extractors);
+        ResponseModel extractResonseModel = partnerCreationService.addBioExtractos(extractRequestWrapper, partnerId, partnerDetailModel.getPolicyName());
+
+        if (apiResonseModel.getStatus().equals(LoggerFileConstant.FAIL))
+            return new ResponseEntity<ResponseModel>(extractResonseModel, HttpStatus.EXPECTATION_FAILED);
+
+
         // Approve PartnerAPI
+        LinkedHashMap<String, String> apiKeyResponseData = (LinkedHashMap) apiResonseModel.getResponseData();
         ApiApproveRequestData approveRequestData = new ApiApproveRequestData();
         approveRequestData.setStatus("Approved");
         RequestWrapper<Object> apiApproveRequestWrapper = createRequestWrapper(approveRequestData);
-        ResponseModel approveResonseModel = partnerCreationService.approvePartnerApiRequest(apiApproveRequestWrapper, partnerId);
+        ResponseModel approveResonseModel = partnerCreationService.approvePartnerApiRequest(apiApproveRequestWrapper, apiKeyResponseData.get("apiRequestId"));
 
         if (approveResonseModel.getStatus().equals(LoggerFileConstant.FAIL))
             return new ResponseEntity<ResponseModel>(approveResonseModel, HttpStatus.EXPECTATION_FAILED);

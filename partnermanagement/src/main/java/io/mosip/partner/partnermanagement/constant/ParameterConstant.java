@@ -11,7 +11,8 @@ public enum ParameterConstant {
     PARTNER_CA_CERTIFICATE_UPLOAD("mosip.ca.certificate.upload.api"),
     PARTNER_CERTIFICATE_UPLOAD("mosip.partner.certificate.upload.api"),
     PARTNER_API_REQUEST("mosip.partner.api.request.api"),
-    PARTNER_API_APROVE_REQUEST("mosip.partner.api.approve.api");
+    PARTNER_API_APROVE_REQUEST("mosip.partner.api.approve.api"),
+    PARTNER_ADD_BIOEXTRACT_REQUEST("mosip.partner.add.bioextract.api");
 
 
     private final String value;

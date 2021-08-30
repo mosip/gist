@@ -16,4 +16,5 @@ public interface PartnerCreationService {
     public ResponseModel uploadPartnerCertificates(Object partnerCertificateRequest);
     public ResponseModel partnerApiRequest(Object apiRequestData, String partnerId);
     public ResponseModel approvePartnerApiRequest(Object approveRequestData, String apiId);
+    public ResponseModel addBioExtractos(RequestWrapper<Object> extractRequestWrapper, String partnerId, String policyName);
 }
