@@ -8,9 +8,12 @@ import io.mosip.partner.partnermanagement.model.apikey.ApiApproveReponseData;
 import io.mosip.partner.partnermanagement.model.certificate.CertificateChainResponseDto;
 import io.mosip.partner.partnermanagement.model.certificate.CertificateResponseData;
 import io.mosip.partner.partnermanagement.model.certificate.PartnerCertificateResponseData;
+import io.mosip.partner.partnermanagement.model.device.DeviceRequestDto;
+import io.mosip.partner.partnermanagement.model.device.DeviceResponseDto;
 import io.mosip.partner.partnermanagement.model.http.RequestWrapper;
 import io.mosip.partner.partnermanagement.model.http.ResponseWrapper;
 import io.mosip.partner.partnermanagement.model.partner.PartnerResponse;
+import io.mosip.partner.partnermanagement.model.securebiometrics.SecureBiometricsResponseDto;
 import io.mosip.partner.partnermanagement.service.PartnerCreationService;
 import io.mosip.partner.partnermanagement.util.KeyMgrUtil;
 import io.mosip.partner.partnermanagement.util.RestApiClient;
@@ -41,8 +44,8 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         ResponseWrapper<PartnerResponse> response = null;
         ResponseModel responseModel = null;
         try {
-            response = restApiClient.postApi(env.getProperty(ParameterConstant.PARTNER_APPID.toString()),
-                    MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
+            logger.info("Calling Create Partner");
+            response = (ResponseWrapper<PartnerResponse>) callPostApi(env.getProperty(ParameterConstant.PARTNER_APPID.toString()), request);
 
             if (response.getResponse() != null) {
                 responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_SUCCESS);
@@ -82,8 +85,8 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         ResponseWrapper<CertificateResponseData> response = null;
         ResponseModel responseModel = null;
         try {
-            response = restApiClient.postApi(env.getProperty(ParameterConstant.PARTNER_CA_CERTIFICATE_UPLOAD.toString()),
-                    MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
+            logger.info("Calling Upload CA/SUB Certificate");
+            response = (ResponseWrapper<CertificateResponseData>) callPostApi(env.getProperty(ParameterConstant.PARTNER_CA_CERTIFICATE_UPLOAD.toString()), request);
 
             if (response.getResponse() != null) {
                 responseModel = new ResponseModel(PartnerManagementConstants.CA_SUCCESS);
@@ -105,8 +108,8 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         ResponseWrapper<PartnerCertificateResponseData> response = null;
         ResponseModel responseModel = null;
         try {
-            response = restApiClient.postApi(env.getProperty(ParameterConstant.PARTNER_CERTIFICATE_UPLOAD.toString()),
-                    MediaType.APPLICATION_JSON, partnerCertificateRequest, ResponseWrapper.class);
+            logger.info("Calling Upload Partner Certificate");
+            response = (ResponseWrapper<PartnerCertificateResponseData>) callPostApi(env.getProperty(ParameterConstant.PARTNER_CERTIFICATE_UPLOAD.toString()), partnerCertificateRequest);
 
             if (response.getResponse() != null) {
                 responseModel = new ResponseModel(PartnerManagementConstants.PC_SUCCESS);
@@ -130,7 +133,9 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         try {
             String apiUrl = env.getProperty(ParameterConstant.PARTNER_API_REQUEST.toString());
             apiUrl = apiUrl.replace("{partnerID}", partnerId);
-            response = restApiClient.patchApi(apiUrl, MediaType.APPLICATION_JSON, apiRequestData, ResponseWrapper.class);
+
+            logger.info("Calling Partner API Request");
+            response = (ResponseWrapper<LinkedHashMap>) callPatchApi(apiUrl, apiRequestData);
 
             if (response.getResponse() != null) {
                 responseModel = new ResponseModel(PartnerManagementConstants.API_SUCCESS);
@@ -154,7 +159,9 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         try {
             String apiUrl = env.getProperty(ParameterConstant.PARTNER_API_APROVE_REQUEST.toString());
             apiUrl = apiUrl.replace("{APIkey}", apiId);
-            response = restApiClient.patchApi(apiUrl, MediaType.APPLICATION_JSON, approveRequestData, ResponseWrapper.class);
+
+            logger.info("Calling Approve Partner API Request");
+            response = (ResponseWrapper<ApiApproveReponseData>) callPatchApi(apiUrl, approveRequestData);
 
             if (response.getResponse() != null) {
                 responseModel = new ResponseModel(PartnerManagementConstants.API_APPROVE_SUCCESS);
@@ -179,7 +186,9 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
             String apiUrl = env.getProperty(ParameterConstant.PARTNER_ADD_BIOEXTRACT_REQUEST.toString());
             apiUrl = apiUrl.replace("{partnerID}", partnerId);
             apiUrl = apiUrl.replace("{policyID}", policyName);
-            response = restApiClient.postApi(apiUrl, MediaType.APPLICATION_JSON, extractRequestWrapper, ResponseWrapper.class);
+
+            logger.info("Calling Add Bio Extractors");
+            response = (ResponseWrapper<String>) callPostApi(apiUrl, extractRequestWrapper);
 
             if (response.getResponse() != null) {
                 responseModel = new ResponseModel(PartnerManagementConstants.BIO_EXTRACT_ADD_SUCCESS);
@@ -194,5 +203,115 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         }
 
         return responseModel;
+    }
+
+    @Override
+    public ResponseModel addDeviceDetails(Object deviceDetails) {
+        ResponseWrapper<DeviceResponseDto> response = null;
+        ResponseModel responseModel = null;
+        try {
+            logger.info("Calling Add Device");
+            response = (ResponseWrapper<DeviceResponseDto>) callPostApi(env.getProperty(ParameterConstant.DEVICE_DETAIL_ADD_REQUEST.toString()), deviceDetails);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.DEVICE_DETAIL_ADD_SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.DEVICE_DETAIL_ADD_FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.DEVICE_DETAIL_ADD_FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public ResponseModel activateDevice(RequestWrapper<Object> activateDeviceRequest) {
+        ResponseWrapper<String> response = null;
+        ResponseModel responseModel = null;
+        try {
+            logger.info("Calling Activate Device");
+            response = (ResponseWrapper<String>) callPatchApi(env.getProperty(ParameterConstant.DEVICE_ACTIVATE_REQUEST.toString()), activateDeviceRequest);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.DEVICE_ACTIVATION_SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.DEVICE_ACTIVATION_FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.DEVICE_ACTIVATION_FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public ResponseModel addSecureBiometricDetails(RequestWrapper<Object> secureBiometricsAddRequest) {
+        ResponseWrapper<SecureBiometricsResponseDto> response = null;
+        ResponseModel responseModel = null;
+        try {
+            logger.info("Calling Add Secure Biometric for Device");
+            response = (ResponseWrapper<SecureBiometricsResponseDto>) callPostApi(env.getProperty(ParameterConstant.SECURE_BIOMETRIC_ADD_REQUEST.toString()), secureBiometricsAddRequest);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.SECURE_BIOMETRICS_DETAIL_ADD_SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.SECURE_BIOMETRICS_DETAIL_ADD_FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.SECURE_BIOMETRICS_DETAIL_ADD_FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public ResponseModel activateSecureBioMetric(RequestWrapper<Object> activateSecureBiometricsRequest) {
+        ResponseWrapper<String> response = null;
+        ResponseModel responseModel = null;
+        try {
+            logger.info("Calling Activate Secure Biometric for Device");
+            response = (ResponseWrapper<String>) callPatchApi(env.getProperty(ParameterConstant.SECURE_BIOMETRIC_ACTIVATE_REQUEST.toString()), activateSecureBiometricsRequest);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.SECURE_BIOMETRICS_ACTIVATION_SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.SECURE_BIOMETRICS_ACTIVATION_FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.SECURE_BIOMETRICS_ACTIVATION_FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    public Object callPatchApi(String url, Object request) throws Exception {
+        logger.info("URL", url);
+        logger.info("Method", "PATCH");
+        logger.info("Request", request.toString());
+        Object response =  restApiClient.patchApi(url, MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
+        logger.info("Response", request.toString());
+        return response;
+    }
+
+    public Object callPostApi(String url, Object request) throws Exception {
+        logger.info("URL", url);
+        logger.info("Method", "POST");
+        logger.info("Request", request.toString());
+        Object response =  restApiClient.postApi(url, MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
+        logger.info("Response", request.toString());
+        return response;
     }
 }

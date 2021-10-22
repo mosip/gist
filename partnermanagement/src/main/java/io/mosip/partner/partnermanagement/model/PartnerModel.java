@@ -1,27 +1,28 @@
 package io.mosip.partner.partnermanagement.model;
 
 import io.mosip.partner.partnermanagement.constant.PartnerTypes;
-import io.mosip.partner.partnermanagement.model.biometricextractors.ExtractorsRequestData;
+import io.mosip.partner.partnermanagement.model.certificate.CertificateChainResponseDto;
+import io.mosip.partner.partnermanagement.model.device.DeviceModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 @Data
 @Setter
 @Getter
-public class PartnerDetailModel {
+public class PartnerModel {
     private String partnerId;
     private String partnerEmailId;
     private String partnerAddress;
     private String partnerContactNumber;
     private String partnerOrganizationName;
-    private String partnerType;
-    private PartnerTypes partnerDomain;
+    @ApiModelProperty(name = "partnerType", value = "DEVICE, AUTH, CREDENTIAL")
+    private PartnerTypes partnerType;
     private String policyGroup;
-    private String policyName;
-    public ExtractorsRequestData extractorList;
+    private CertificateChainResponseDto certificateDetails;
+    private List<DeviceModel> deviceDetails;
+
 }

@@ -82,7 +82,7 @@ public class KeyMgrUtil {
     private String KEY_ALIAS = "keyalias";
     private String KEY_STORE = "PKCS12";
     private String RSA_ALGO = "RSA";
-    private int RSA_KEY_SIZE = 2048;
+    private int RSA_KEY_SIZE = 4096;
     private String SIGN_ALGO = "SHA256withRSA";
     private String DEVICE_SPECIFIC_KEY = "-dsk";
     private String CHIP_SPECIFIC_KEY = "-csk";
@@ -226,7 +226,7 @@ public class KeyMgrUtil {
             KeyStoreException, CertificateException, IOException, OperatorCreationException {
         String filePrepend = partnerType.getFilePrepend();
 
-        if (partnerType == PartnerTypes.RELYING_PARTY || partnerType == PartnerTypes.EKYC) {
+/*        if (partnerType == PartnerTypes.RELYING_PARTY || partnerType == PartnerTypes.EKYC) {
             String partnerFilePath = dirPath + '/' + filePrepend + PARTNER_P12_FILE_NAME;
             return getPrivateKeyEntry(partnerFilePath);
         }
@@ -256,7 +256,7 @@ public class KeyMgrUtil {
             return generateKeys(pKeyEntry.getPrivateKey(), cName, "CSK-" + partnerType,
                     csPartnerFilePath, keyUsage, dateTime, dateTimeExp, oName);
 
-        }
+        }*/
 
         if (partnerType == PartnerTypes.DEVICE) {
             String dsPartnerFilePath = dirPath + '/' + filePrepend + DEVICE_SPECIFIC_KEY + PARTNER_P12_FILE_NAME;
