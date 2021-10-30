@@ -3,14 +3,13 @@ package io.mosip.print.listener.util;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.print.listener.constant.LoggerFileConstant;
 import io.mosip.print.listener.exception.ExceptionUtils;
 
 /**
@@ -55,10 +54,10 @@ public class TokenHandlerUtil {
 				return true;
 			}
 		} catch (JWTDecodeException e) {
-			LOGGER.error("JWT DECODE EXCEPTION ::" .concat(e.getMessage()).concat(ExceptionUtils.getStackTrace(e)));
+			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "TOKEN HANDLER","JWT DECODE EXCEPTION ::" .concat(e.getMessage()).concat(ExceptionUtils.getStackTrace(e)));
 			return false;
 		} catch (Exception e) {
-			LOGGER.error(e.getMessage().concat(ExceptionUtils.getStackTrace(e)));
+			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "TOKEN HANDLER",e.getMessage().concat(ExceptionUtils.getStackTrace(e)));
 			return false;
 		}
 

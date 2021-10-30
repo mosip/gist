@@ -1,7 +1,7 @@
 package io.mosip.print.listener.logger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.print.listener.util.LoggerFactory;
 
 
 /**

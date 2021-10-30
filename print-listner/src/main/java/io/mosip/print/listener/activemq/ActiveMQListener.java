@@ -3,6 +3,7 @@ package io.mosip.print.listener.activemq;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,20 +21,28 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.print.listener.constant.LoggerFileConstant;
+import io.mosip.print.listener.constant.PrintTransactionStatus;
+import io.mosip.print.listener.dto.MQResponseDto;
 import io.mosip.print.listener.dto.PrintMQDetails;
 import io.mosip.print.listener.controller.PrintListenerController;
+import io.mosip.print.listener.dto.PrintStatusRequestDto;
+import io.mosip.print.listener.exception.ExceptionUtils;
 import io.mosip.print.listener.model.Event;
 import io.mosip.print.listener.model.EventModel;
+import io.mosip.print.listener.util.DateUtils;
 import io.mosip.print.listener.util.Helpers;
+import io.mosip.print.listener.util.LoggerFactory;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.command.ActiveMQTextMessage;
+import org.bouncycastle.asn1.tsp.TimeStampReq;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -117,7 +126,8 @@ public class ActiveMQListener {
 	public void consumeLogic(javax.jms.Message message, String abismiddlewareaddress) {
 		Integer textType = 0;
 		String messageData = null;
-		logger.info("Received message " + message);
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ",
+				"Received message " + message);
 		try {
 			if (message instanceof TextMessage || message instanceof ActiveMQTextMessage) {
 				textType = 1;
@@ -127,34 +137,45 @@ public class ActiveMQListener {
 				textType = 2;
 				messageData = new String(((ActiveMQBytesMessage) message).getContent().data);
 			} else {
-				logger.error("Received message is neither text nor byte");
+				logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","Received message is neither text nor byte");
 				return ;
 			}
-			logger.info("Message Data " + messageData);
+			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","Message Data " + messageData);
 			Map map = new Gson().fromJson(messageData, Map.class);
+
+			PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
+			printStatusRequestDto.setPrintStatus(PrintTransactionStatus.SENT_FOR_PRINTING);
+			printStatusRequestDto.setProcessedTime(DateUtils.getUTCCurrentDateTimeString());
+			printStatusRequestDto.setId(map.get("printId").toString());
+			MQResponseDto mqResponseDto = new MQResponseDto("mosip.print.pdf.response", printStatusRequestDto);
+			ResponseEntity<Object> mqResponse = new ResponseEntity<Object>(mqResponseDto, HttpStatus.OK);
+			sendToQueue(mqResponse, 1);
+
 			final ObjectMapper mapper = new ObjectMapper();
 			mapper.findAndRegisterModules();
 			mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
 			ResponseEntity<Object> obj = null;
 
-			logger.info("go on sleep {} ", delayResponse);
+			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","go on sleep {} "+ delayResponse);
 			TimeUnit.SECONDS.sleep(delayResponse);
 
-			logger.info("Request type is " + map.get("id"));
+			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","Request type is " + map.get("id"));
 
 			switch (map.get(ID).toString()) {
 			case PRINT_PDF_DATA:
 				Event event = new Event();
 				event.setId(map.get("refId").toString());
 				event.setDataShareUri(map.get("data").toString());
+				event.setPrintId(map.get("printId").toString());
 				EventModel eventModel = new EventModel();
 				eventModel.setEvent(event);
 				printListenerController.processDataShareUrl(eventModel);
 				break;
 			}
 		} catch (Exception e) {
-			logger.error("Issue while hitting mock abis API", e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 			e.printStackTrace();
 		}
 	}
@@ -163,7 +184,7 @@ public class ActiveMQListener {
 		final ObjectMapper mapper = new ObjectMapper();
 		mapper.findAndRegisterModules();
 		mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-		logger.info("Response: ", obj.getBody().toString());
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","Response: " + obj.getBody().toString());
 		if (textType == 2) {
 			send(mapper.writeValueAsString(obj.getBody()).getBytes("UTF-8"),
 					outBoundQueue);
@@ -177,7 +198,7 @@ public class ActiveMQListener {
 			return Helpers.readFileFromResources("print-activemq-listener.json");
 		} else {
 			RestTemplate restTemplate = new RestTemplate();
-			logger.info("Json URL ",configServerFileStorageURL,uri);
+			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","Json URL " + configServerFileStorageURL + " : " + uri);
 			return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
 		}
 	}
@@ -187,7 +208,7 @@ public class ActiveMQListener {
 
 		String printQueueJsonStringValue = getJson(configServerFileStorageURL, printActiveMQListenerJson, localDevelopment);
 
-		logger.info(printQueueJsonStringValue);
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ",printQueueJsonStringValue);
 		JSONObject printQueueJson;
 		PrintMQDetails queueDetail = new PrintMQDetails();
 		Gson g = new Gson();
@@ -219,7 +240,8 @@ public class ActiveMQListener {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("Error while fetching abis info", e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " +  e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 		}
 		return queueDetailsList;
 	}
@@ -244,7 +266,8 @@ public class ActiveMQListener {
 				}
 			}
 		} catch (JMSException e) {
-			logger.error(e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 			e.printStackTrace();
 		}
 	}
@@ -273,7 +296,8 @@ public class ActiveMQListener {
 
 			}
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 			e.printStackTrace();
 		}
 
@@ -297,7 +321,8 @@ public class ActiveMQListener {
 			consumer.setMessageListener(getListener(queueName, object));
 
 		} catch (JMSException e) {
-			logger.error(e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ", "ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 			e.printStackTrace();
 		}
 		return null;
@@ -329,10 +354,12 @@ public class ActiveMQListener {
 			messageProducer.send(byteMessage);
 			flag = true;
 		} catch (JMSException e) {
-			logger.error(e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ", "ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 			e.printStackTrace();
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 			e.printStackTrace();
 		}
 		return flag;
@@ -348,10 +375,12 @@ public class ActiveMQListener {
 			messageProducer.send(session.createTextMessage(message));
 			flag = true;
 		} catch (JMSException e) {
-			logger.error(e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 			e.printStackTrace();
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 			e.printStackTrace();
 		}
 		return flag;
@@ -377,7 +406,8 @@ public class ActiveMQListener {
 				throw new Exception("Queue Connection Not Found");
 			}
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 			e.printStackTrace();
 		}
 	}
