@@ -11,6 +11,7 @@ import java.util.Iterator;
 
 import javax.net.ssl.SSLContext;
 
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.listener.logger.PrintListenerLogger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -25,7 +26,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.env.Environment;

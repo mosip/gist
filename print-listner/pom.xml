@@ -27,7 +27,6 @@
         <commons-lang3>3.7</commons-lang3>
         <bouncycastle.version>1.66</bouncycastle.version>
         <kernel.core.version>1.1.4</kernel.core.version>
-
     </properties>
 
     <dependencies>
@@ -121,8 +120,32 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
-
-
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.24</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-core</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.jai-imageio/jai-imageio-jpeg2000 -->
+        <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-jpeg2000</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mosip.kernel</groupId>
+            <artifactId>kernel-logger-logback</artifactId>
+            <version>${kernel.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.profesorfalken</groupId>
+            <artifactId>WMI4Java</artifactId>
+            <version>1.4.2</version>
+        </dependency>
     </dependencies>
 
     <build>

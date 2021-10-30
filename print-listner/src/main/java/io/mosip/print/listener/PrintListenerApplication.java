@@ -1,6 +1,7 @@
 package io.mosip.print.listener;
 
 import io.mosip.print.listener.activemq.ActiveMQListener;
+import io.mosip.print.listener.util.PrinterUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -18,6 +19,6 @@ public class PrintListenerApplication {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext configurableApplicationContext = SpringApplication.run(PrintListenerApplication.class, args);
-        configurableApplicationContext.getBean(ActiveMQListener.class).runQueue();
+        configurableApplicationContext.getBean(PrinterUtil.class).printerHealthCheck();
     }
 }

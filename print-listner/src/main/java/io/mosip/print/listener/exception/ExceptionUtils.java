@@ -3,10 +3,10 @@ package io.mosip.print.listener.exception;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.print.listener.constant.LoggerFileConstant;
+import io.mosip.print.listener.util.LoggerFactory;
 
 /**
  * This utils contains exception utilities.
@@ -75,7 +75,7 @@ public final class ExceptionUtils {
 	}
 
 	public static void logRootCause(Throwable exception) {
-		logger.error("Exception Root Cause: {} ", exception.getMessage());
-		logger.debug("Exception Root Cause:", exception);
+		logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "EXCEPTION UTIL", "Exception Root Cause: {} " + exception.getMessage());
+		logger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "EXCEPTION UTIL","Exception Root Cause:" + exception);
 	}
 }

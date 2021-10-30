@@ -70,8 +70,14 @@ public enum PlatformErrorMessages {
 	API_NOT_ACCESSIBLE_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "026", "Api not accessible failure"),
 	CERTIFICATE_THUMBPRINT_ERROR(PlatformConstants.PRT_PRINT_PREFIX + "026", "certificate thumbprint failure"),
 	PRT_INVALID_KEY_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "027", "invalid key"),
-	PRT_PDF_SIGN_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "028", "error occured while signing pdf");
-	
+	PRT_PDF_SIGN_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "028", "error occured while signing pdf"),
+	PRT_FAILED(PlatformConstants.PRT_PRINT_PREFIX + "029","Printing Process Failed. Conatct Administrator"),
+	PRT_ERROR(PlatformConstants.PRT_PRINT_PREFIX + "030", ""),
+	PRT_NOT_CONFIG(PlatformConstants.PRT_PRINT_PREFIX + "031", "Printer Name not configured Property file"),
+	PRT_OFFLINE(PlatformConstants.PRT_PRINT_PREFIX + "032", "Printer is Offline"),
+	PRT_NOT_FOUND(PlatformConstants.PRT_PRINT_PREFIX + "033", "Printer Name not found in Printer List");
+
+
 
 
 	/** The error message. */

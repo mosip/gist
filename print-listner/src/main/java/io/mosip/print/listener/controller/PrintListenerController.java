@@ -1,9 +1,11 @@
 package io.mosip.print.listener.controller;
 
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.print.listener.constant.LoggerFileConstant;
+import io.mosip.print.listener.logger.PrintListenerLogger;
 import io.mosip.print.listener.model.EventModel;
 import io.mosip.print.listener.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,24 +22,29 @@ public class PrintListenerController {
 	@Autowired
 	private ClientService clientService;
 
+	Logger logger = PrintListenerLogger.getLogger(PrintListenerController.class);
 	/**
 	 * Gets the file.
 	 *
-	 * @param printRequest the print request DTO
-	 * @param token        the token
-	 * @param errors       the errors
-	 * @param printRequest the print request DTO
+	 * @param eventModel the event details
 	 * @return the file
-	 * @throws Exception
-	 * @throws RegPrintAppException the reg print app exception
+	 * @throws Exception the reg print app exception
 	 */
 	@PostMapping(path = "/decryptCredentials", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<String> handleSubscribeEvent(@RequestBody EventModel eventModel) throws Exception {
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"/decryptCredentials", "Method handleSubscribeEvent(EventModel) call started");
 		clientService.generateCard(eventModel);
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"/decryptCredentials", "Method handleSubscribeEvent(EventModel) call Completed");
 		return new ResponseEntity<>("successfully printed", HttpStatus.OK);
 	}
 
 	public void processDataShareUrl(EventModel eventModel) {
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"/processDataShareUrl", "Method processDataShareUrl(EventModel) call started");
 		clientService.generateCard(eventModel);
+		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"/processDataShareUrl", "Method processDataShareUrl(EventModel) call Completed");
 	}
 }

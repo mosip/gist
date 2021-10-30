@@ -5,8 +5,9 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.print.listener.constant.LoggerFileConstant;
+import io.mosip.print.listener.util.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -83,7 +84,7 @@ public class PrintListenerSwaggerConfig {
 				}
 				swaggerBaseUrlSet = true;
 			} catch (MalformedURLException e) {
-				LOGGER.error("SwaggerUrlException: {}", e);
+				LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","SwaggerUrlException: {} " +  e);
 			}
 		}
 
@@ -93,7 +94,7 @@ public class PrintListenerSwaggerConfig {
 
 		if (swaggerBaseUrlSet) {
 			docket.protocols(protocols()).host(hostWithPort);
-			LOGGER.info("\nSwagger Base URL: " + proto + "://" + hostWithPort + "\n");
+			LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","\nSwagger Base URL: " + proto + "://" + hostWithPort + "\n");
 		}
 
 		return docket;
