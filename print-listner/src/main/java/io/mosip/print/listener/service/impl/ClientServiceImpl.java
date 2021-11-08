@@ -57,6 +57,7 @@ public class ClientServiceImpl implements ClientService {
 
 		try {
 			String dataShareUrl = eventModel.getEvent().getDataShareUri();
+			dataShareUrl = dataShareUrl.replace("http://", "https://");
 			URI dataShareUri = URI.create(dataShareUrl);
 			String credentials = restApiClient.getApi(dataShareUri, String.class);
 			String decryptedData = cryptoCoreUtil.decrypt(credentials);
