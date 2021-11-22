@@ -35,6 +35,9 @@ public class PrinterUtil {
     @Autowired
     private ActiveMQListener activeMQListener;
 
+    @Autowired
+    private Environment env;
+
     /** The print logger. */
     Logger clientLogger = PrintListenerLogger.getLogger(ClientServiceImpl.class);
     LinkedHashMap<String, PrinterInfo> printerInfoMap = new LinkedHashMap<>();
@@ -44,7 +47,7 @@ public class PrinterUtil {
         File pdfFile = null;
 
         try {
-            String filePath = applicationContext.getPartnerResourCeBundle().getString("partner.pdf.download.path");
+            String filePath = env.getProperty("partner.pdf.download.path");
             if(!filePath.endsWith("/"))
                 filePath = filePath + "/";
 
@@ -59,7 +62,7 @@ public class PrinterUtil {
 
             PrintService[] printServices = PrintServiceLookup.lookupPrintServices(null, null);
             PrintService printer = null;
-            String printerName = applicationContext.getPartnerResourCeBundle().getString("partner.printer.name");
+            String printerName = env.getProperty("partner.printer.name");
 
             if(printerName == null || printerName.isEmpty()) {
                 clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
