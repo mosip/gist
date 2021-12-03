@@ -1,0 +1,70 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ekycclient</groupId>
+  <artifactId>ekycclient</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <release>14</release>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+  <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk14 -->
+  
+<dependency>
+    <groupId>org.bouncycastle</groupId>
+    <artifactId>bcprov-jdk15on</artifactId>
+    <version>1.69</version>
+</dependency>
+ 
+  <!-- https://mvnrepository.com/artifact/org.bitbucket.b_c/jose4j -->
+<dependency>
+    <groupId>org.bitbucket.b_c</groupId>
+    <artifactId>jose4j</artifactId>
+    <version>0.7.9</version>
+</dependency>
+  <!-- https://mvnrepository.com/artifact/com.squareup.okhttp/okhttp -->
+<dependency>
+    <groupId>com.squareup.okhttp</groupId>
+    <artifactId>okhttp</artifactId>
+    <version>2.7.5</version>
+</dependency>
+  <dependency>  
+    <groupId>com.googlecode.json-simple</groupId>  
+    <artifactId>json-simple</artifactId>  
+    <version>1.1</version>  
+  </dependency>
+  <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+<dependency>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <version>1.15</version>
+</dependency>
+    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-core</artifactId>
+    <version>2.13.0</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-annotations</artifactId>
+    <version>2.13.0</version>
+</dependency>
+    <!-- https://mvnrepository.com/artifact/io.mosip.kernel/kernel-core -->
+<dependency>
+    <groupId>io.mosip.kernel</groupId>
+    <artifactId>kernel-core</artifactId>
+    <version>1.2.0-rc1</version>
+    
+</dependency>
+    
+  </dependencies>
+</project>
