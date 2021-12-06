@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name">Resident</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="clickme">Click Here</string>
+    <string name="getuin">Get E-UIN</string>
+    <string name="gethistory">Fetch Auth History</string>
+    <string name="title_login">Resident Services</string>
+    <string name="txt_uin">UIN/VID</string>
+    <string name="text_uin">UIN/VID</string>
+    <string name="UIN">UIN/VID</string>
+    <string name="getotp">Generate OTP</string>
+    <string name="OTP">Services</string>
+    <string name="savecred">Save</string>
+    <string name="slno">Serial Number</string>
+    <string name="IDUseed">ID Used</string>
+    <string name="authModality">Auth Modality</string>
+    <string name="timeAgo">Time Ago</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Settings</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">URL Base</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="title_preferences">Preferences</string>
+    <string name="euin">Download eUIN</string>
+    <string name="requestcred">Request Credentials</string>
+    <string name="requeststatus">Request Status</string>
+    <string name="addrline1">Address Line 1</string>
+    <string name="addrline3">Address line 3</string>
+    <string name="addrline2">Address line 2</string>
+    <string name="update_address">Request Update Address</string>
+
+    <!-- Resident App constants -->
+    <string name="clint_secret"></string>
+    <string name="app_id">resident</string>
+    <string name="client_id">mosip-resident-client</string>
+    <string name="title_otp">OTP</string>
+    <string name="title_history">Auth History</string>
+    <string name="title_update">Update</string>
+    <string name="download">Download Credentials</string>
+    <string name="otpvalue">OTP</string>
+    <string name="vid">Create Perpetual VID</string>
+</resources>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.login.LoginFragment">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+<!--
+    <EditText
+        android:id="@+id/text_uinvalue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:ems="10"
+        android:hint="@string/UIN"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.184"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+ -->
+    <Button  xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/button_getotp"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/getotp"
+        android:layout_marginLeft="10dp"
+
+        android:layout_gravity="left" />
+
+    <EditText
+        android:id="@+id/text_otpvalue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+
+        android:hint="@string/otpvalue" />
+
+    <Button  xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/button_reqcreds"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/requestcred"
+        android:layout_marginLeft="10dp"
+
+         />
+    <Button  xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/button_status"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/requeststatus"
+        android:layout_marginLeft="10dp"
+
+
+         />
+    <Button  xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/button_downloadcreds"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/download"
+        android:layout_marginLeft="10dp"
+
+        />
+
+    <Button  xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/button_vid"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_marginLeft="10dp"
+
+        android:text="@string/vid" />
+    <TextView
+        android:id="@+id/label_msgarea"
+
+        android:layout_marginLeft="10dp"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+         />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
