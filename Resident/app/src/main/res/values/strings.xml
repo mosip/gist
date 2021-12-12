@@ -43,7 +43,7 @@
     <string name="update_address">Request Update Address</string>
 
     <!-- Resident App constants -->
-    <string name="clint_secret"></string>
+    <string name="clint_secret">abc123</string>
     <string name="app_id">resident</string>
     <string name="client_id">mosip-resident-client</string>
     <string name="title_otp">OTP</string>

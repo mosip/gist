@@ -2,6 +2,7 @@ package org.mosip.resident.ui.login;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -28,6 +29,8 @@ import org.mosip.resident.databinding.FragmentLoginBinding;
 import  org.mosip.resident.R;
 import org.mosip.resident.service.APICallback;
 import org.mosip.resident.service.APIHelper;
+
+import java.io.File;
 
 public class LoginFragment extends Fragment {
     private LoginViewModel loginViewModel;
@@ -257,6 +260,7 @@ public class LoginFragment extends Fragment {
 
     }
 
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void downloadCreds(View view) {
         MainActivity activity = (MainActivity) getActivity();
@@ -265,8 +269,15 @@ public class LoginFragment extends Fragment {
         activity.getHelper().downloadResidentCredentials(loginViewModel.getRequestId(), new APICallback() {
             @Override
             public void onSuccess(Object param) {
-                setMsg(param.toString());
-
+              //  setMsg(param.toString());
+               // File folderPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+               // String filePath = folderPath +"/"+ App.getUIN()+"_creds.pdf";
+               // String filePath = APIHelper.saveToFile((byte[])param,App.getUIN()+"_creds.pdf", view.getContext());
+                App.setDownloadedData((byte[])param);
+                APIHelper.openSaveAs(App.getUIN()+"_creds.pdf");
+                setMsg("downloaded to "+ App.getUIN()+"_creds.pdf");
+               // Log.d("download", filePath);
+                //APIHelper.openPdf(new File(filePath), App.getActivity());
             }
 
             @Override

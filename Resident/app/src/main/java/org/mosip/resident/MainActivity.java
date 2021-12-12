@@ -1,9 +1,11 @@
 package org.mosip.resident;
 
+import android.app.Activity;
 import android.content.Intent;
 
 
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -38,6 +40,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
@@ -66,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        App.setActivity(this);
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         App.setBaseUrl( pref.getString("baseurl",App.getBaseUrl()));
         Log.d("Resident",App.getBaseUrl());
@@ -224,16 +230,26 @@ public class MainActivity extends AppCompatActivity {
         biometricPrompt.authenticate(promptInfo);
         return biometricPrompt;
     }
-/*****
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public void generateOTP(View view) {
-        // Do something in response to button click
-        Log.d("LOG","generate OTP clicked...");
 
-        helper.requestResidentOTP ("5091326710","uin");
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 12001 && resultCode == Activity.RESULT_OK) {
+            Uri uri = data.getData();
+
+            //just as an example, I am writing a String to the Uri I received from the user:
+
+            try {
+                OutputStream output = this.getApplicationContext().getContentResolver().openOutputStream(uri);
+
+                output.write(App.getDownloadedData());
+                output.flush();
+                output.close();
+            } catch (IOException e) {
+                Toast.makeText(this.getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
-****/
-
 
 }

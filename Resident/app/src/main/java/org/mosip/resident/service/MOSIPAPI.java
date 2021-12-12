@@ -1,5 +1,6 @@
 package org.mosip.resident.service;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import org.mosip.resident.pojo.APIResponse;
 import org.mosip.resident.pojo.AuthRequest;
@@ -15,6 +16,7 @@ import org.mosip.resident.pojo.ValidateOTPRequest;
 
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
@@ -54,7 +56,7 @@ public interface MOSIPAPI {
     Call<APIResponse> getResidentCredRequestStatus(@Path("requestId") String requestId);
 
     @GET("/resident/v1/req/card/{requestId}")
-    Call<APIResponse> downloadResidentCredentials(@Path("requestId") String requestId);
+    Call<ResponseBody> downloadResidentCredentials(@Path("requestId") String requestId);
 
 
 //    @POST("/resident/v1/req/euin")

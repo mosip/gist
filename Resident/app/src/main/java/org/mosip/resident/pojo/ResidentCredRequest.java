@@ -61,9 +61,10 @@ public class ResidentCredRequest {
             data.issuer= "mpartner-default-print";
             data.user = "";
             data.additionalData = new Object();
-            data.sharableAttributes = new Object[1];
-            data.sharableAttributes[0]= "";
+            data.sharableAttributes = new Object[0];
+            //data.sharableAttributes[0]= "";
             data.recepiant ="";
+            data.encrypt =false;
             data.encryptionKey="";
     }
 

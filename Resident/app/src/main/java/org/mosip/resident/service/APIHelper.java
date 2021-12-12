@@ -1,11 +1,25 @@
 package org.mosip.resident.service;
 
+import static androidx.core.app.ActivityCompat.startActivityForResult;
+
+import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
+import androidx.core.content.FileProvider;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.mosip.resident.App;
+import org.mosip.resident.BuildConfig;
 import org.mosip.resident.pojo.APIResponse;
 import org.mosip.resident.pojo.AuthHistory;
 import org.mosip.resident.pojo.AuthRequest;
@@ -18,7 +32,11 @@ import org.mosip.resident.pojo.ResidentEUINRequest;
 import org.mosip.resident.pojo.ResidentHistoryRequest;
 import org.mosip.resident.pojo.ResidentOTPRequest;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -26,10 +44,12 @@ import java.util.List;
 
 
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Random;
 import java.util.TimeZone;
 
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -57,12 +77,15 @@ public class APIHelper {
         int leftLimit = 97; // letter 'a'
         int rightLimit = 122; // letter 'z'
         //int targetStringLength = 10;
+/*
         Random random = new Random();
 
         String generatedString = random.ints(leftLimit, rightLimit + 1)
                 .limit(targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
+  */
+        String generatedString = RandomStringUtils.random(targetStringLength, false, true);
 
         return(generatedString);
     }
@@ -184,8 +207,43 @@ public class APIHelper {
         });
         return true;
     }
-   
-    
+    /*
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public  String requestResidentEUIN(String id, String idType, String otp, String trId){
+        Call<APIResponse> call = apiInterface.requestResidentEUIN(createResidentEUINReq(id,idType,otp, trId));
+        call.enqueue(new Callback<APIResponse>() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onResponse(Call<APIResponse> call, Response<APIResponse> response) {
+
+                Log.d("TAG",response.code()+"");
+                if(response.code() == 200) {
+                    if(response.body().getResponse() != null) {
+                        Log.d("TAG", response.body().getResponse().getMessage());
+                    }
+                    else {
+                        if(response.body().getErrors() != null){
+                            Log.d("TAG", response.body().getErrors().toString());
+                        }
+                    }
+
+                }
+                else{
+                    //      assert response.body() != null;
+                    Log.d("TAG", response.message());
+
+                }
+
+            }
+            @Override
+            public void onFailure(Call<APIResponse> call, Throwable t) {
+                call.cancel();
+            }
+        });
+        return "";
+    }
+    */
+
     //private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -279,52 +337,90 @@ public class APIHelper {
         });
     }
 
+    public static void openSaveAs(String nameAs){
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/pdf"); //not needed, but maybe usefull
+        intent.putExtra(Intent.EXTRA_TITLE, nameAs); //not needed, but maybe usefull
+        App.getActivity().startActivityForResult(intent, 12001);
+    }
+    public static String saveToFile(byte[] barr, String fileName, Context ctx){
+        ContentResolver resolver = ctx.getContentResolver();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName );
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
+        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+        Uri pdfUri = resolver.insert(MediaStore.Files.getContentUri("external"), contentValues);
+
+
+        try {
+            OutputStream fos = resolver.openOutputStream(Objects.requireNonNull(pdfUri));
+            fos.write(barr);
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return pdfUri.toString();
+      /*  try {
+            File file = new File(fileName);
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(barr);
+            fos.close();
+        } catch (Exception e) {
+            Log.e("write pdf", e.getMessage());
+        }*/
+    }
+    public static void openPdf(File file, Activity activity){
+
+
+        //String authority = activity.getApplicationContext().getPackageName() + ".fileprovider";
+        //Uri uriToFile = FileProvider.getUriForFile(activity, authority, file);
+
+        Uri uriToFile =FileProvider.getUriForFile(Objects.requireNonNull(activity.getApplicationContext()),
+               BuildConfig.APPLICATION_ID + ".provider", file);
+
+
+        //Uri uriToFile = Uri.fromFile(file);
+        Intent shareIntent = new Intent(Intent.ACTION_VIEW);
+        shareIntent.setDataAndType(uriToFile, "application/pdf");
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        if (shareIntent.resolveActivity(activity.getPackageManager()) != null) {
+            activity.startActivity(shareIntent);
+        }
+    }
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void downloadResidentCredentials(String reqid, APICallback cb){
 
-        Call<APIResponse> call = apiInterface.downloadResidentCredentials(reqid);
+        Call<ResponseBody> call = apiInterface.downloadResidentCredentials(reqid);
 
-        call.enqueue(new Callback<APIResponse>() {
+        call.enqueue(new Callback<ResponseBody>() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
-            public void onResponse(Call<APIResponse> call, Response<APIResponse> response) {
-                String retval = "";
-                Log.d("TAG",response.code()+"");
-                if(response.code() == 200) {
-                    if(response.body().getResponse() != null) {
-
-                        try {
-                            retval = response.raw().body().string();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        Log.d("TAG", retval);
-
-
-                        if(cb != null){
-                            cb.onSuccess(retval);
-                        }
-                    }
-                    else {
-                        if(response.body().getErrors() != null){
-                            Log.d("TAG", response.body().getErrors().toString());
-                            if(cb != null){
-                                cb.onError(response.body().getErrors());
-                            }
-
-                        }
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                byte[] retval = null;
+                Log.d("TAG", response.code() + "");
+                if (response.code() == 200) {
+                    try {
+                        retval = response.body().bytes();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
 
-                }
-                else{
+                    if (cb != null) {
+                        cb.onSuccess(retval);
+                    }
+                } else {
                     //      assert response.body() != null;
                     Log.d("TAG", response.message());
 
                 }
-
             }
+
             @Override
-            public void onFailure(Call<APIResponse> call, Throwable t) {
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
                 call.cancel();
             }
         });
@@ -458,6 +554,7 @@ public class APIHelper {
 
         return req;
     }
+    /*
     @RequiresApi(api = Build.VERSION_CODES.O)
     private ResidentEUINRequest createResidentEUINReq(String id, String idType, String otp, String trId) {
         ResidentEUINRequest req = new ResidentEUINRequest();
@@ -467,7 +564,7 @@ public class APIHelper {
         req.data.otp= otp;
         req.data.cardType="UIN";
         return req;
-    }
+    }*/
     @RequiresApi(api = Build.VERSION_CODES.O)
     private ResidentHistoryRequest createResidentHistoryReq(String id, String pageNumber, String otp, String trId) {
         ResidentHistoryRequest req = new ResidentHistoryRequest();
@@ -493,9 +590,9 @@ public class APIHelper {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static AuthRequest createAuthReq(){
         AuthRequest req = new AuthRequest();
-        req.data.appId= App.getContext().getString(R.string.app_id); 
-        req.data.secretKey = App.getContext().getString(R.string.clint_secret);
-        req.data.clientId=App.getContext().getString(R.string.client_id); 
+        req.data.appId= App.getContext().getString(R.string.app_id); //  "resident"
+        req.data.secretKey = App.getContext().getString(R.string.clint_secret);// "abc123";
+        req.data.clientId=App.getContext().getString(R.string.client_id); //"mosip-resident-client";
         return req;
     }
 
