@@ -42,8 +42,8 @@ Before you start any of the steps, you should be aware of the following technica
     "printMQ": [{
         "name": "PRINT LISTENER",
         "brokerUrl": "tcp://sandbox.mosip.net:30616",
-        "inboundQueueName": "print-to-listener",
-        "outboundQueueName": "",
+        "inboundQueueName": "print-to-printlistener",
+        "outboundQueueName": "printlistener-to-print",
         "userName": "userId",
         "password": "password",
         "typeOfQueue": "ACTIVEMQ"
@@ -76,7 +76,7 @@ java -jar {printlistenerjarname}.jar
 
 5. Verify print listener service
 
-```
+```json
 1. Open http://localhost:9092/v1/printListener/swagger-ui.html
 
 2. Go to /decryptCredentials
@@ -84,11 +84,11 @@ java -jar {printlistenerjarname}.jar
 3. Try it out
 
 4. sample Request
-
 {
   "event": {
     "dataShareUri": "string",
-    "id": "string"
+    "id": "string",
+    "printId": "string"
   },
   "requestedOn": "string"
 }
