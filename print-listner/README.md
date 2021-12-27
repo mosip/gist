@@ -37,9 +37,9 @@
 3. partner.properties - contain property of partner private key information.
 4. Swagger URI - `http://{mosip.hostname}/v1/printListener/swagger-ui.html`
 
-### Pre-Request
+### Some pre-requisites
 1. MOSIP hostname should be configured in application.properties.
-2. partner `*.p12` file should be placed in resources package.
+2. Partner `*.p12` file should be placed in resources package.
 3. Partner credentials information like key.filename, key.password & key.alias to be configured in `partner.properties`.
 4. ActiveMQ queue information should be configured in `print-activemq-listener.json`.
 ### Build
