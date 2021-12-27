@@ -1,8 +1,3 @@
-<!--[![Build Status](https://travis-ci.org/mosip/admin-services.svg?branch=1.0.9)](https://travis-ci.org/mosip/admin-services) -->
-
-# mosip-platform
-This repository contains the source code of the Modular Open Source Identity Platform. To know more about MOSIP, its architecture, external integrations, releases, etc., please check the [Platform Documentation](https://github.com/mosip/mosip-docs/wiki)
-
 ## Print-Listener
 ### Introduction
 1. Print-Listener is a service which is run in user system (or) local server. This listener service will listen to ActiveMQ queue ('print-to-printlistener') and read the messages when available in queue.
