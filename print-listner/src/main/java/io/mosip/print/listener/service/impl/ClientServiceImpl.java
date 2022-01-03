@@ -49,6 +49,9 @@ public class ClientServiceImpl implements ClientService {
 	@Autowired
 	private PrinterUtil printerUtil;
 
+	@Autowired
+	private Environment env;
+
 	/** The print logger. */
 	Logger clientLogger = PrintListenerLogger.getLogger(ClientServiceImpl.class);
 
@@ -70,21 +73,32 @@ public class ClientServiceImpl implements ClientService {
 			os.write(Base64.decodeBase64(decryptedData));
 			os.close();
 
-			if (printerUtil.initiatePrint(pdfFile.getName())) {
+			boolean printRequired  = env.getProperty("mosip.print.pdf.printing.required", boolean.class);
+
+			if(printRequired) {
+				if (printerUtil.initiatePrint(pdfFile.getName())) {
+					PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
+					printStatusRequestDto.setPrintStatus(PrintTransactionStatus.PRINTED);
+					printStatusRequestDto.setProcessedTime(DateUtils.getUTCCurrentDateTimeString());
+					printStatusRequestDto.setId(eventModel.getEvent().getPrintId());
+					MQResponseDto mqResponseDto = new MQResponseDto("mosip.print.pdf.response", printStatusRequestDto);
+					ResponseEntity<Object> mqResponse = new ResponseEntity<Object>(mqResponseDto, HttpStatus.OK);
+					activeMQListener.sendToQueue(mqResponse, 1);
+				} else {
+					clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
+							PlatformErrorMessages.PRT_FAILED.name());
+					throw new Exception(PlatformErrorMessages.PRT_FAILED.getMessage());
+				}
+			} else {
 				PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
-				printStatusRequestDto.setPrintStatus(PrintTransactionStatus.PRINTED);
+				printStatusRequestDto.setPrintStatus(PrintTransactionStatus.SAVED_IN_LOCAL);
 				printStatusRequestDto.setProcessedTime(DateUtils.getUTCCurrentDateTimeString());
 				printStatusRequestDto.setId(eventModel.getEvent().getPrintId());
 				MQResponseDto mqResponseDto = new MQResponseDto("mosip.print.pdf.response", printStatusRequestDto);
 				ResponseEntity<Object> mqResponse = new ResponseEntity<Object>(mqResponseDto, HttpStatus.OK);
 				activeMQListener.sendToQueue(mqResponse, 1);
-			} else {
-				clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
-								PlatformErrorMessages.PRT_FAILED.name());
-				throw new Exception(PlatformErrorMessages.PRT_FAILED.getMessage());
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR : " + e.getMessage());

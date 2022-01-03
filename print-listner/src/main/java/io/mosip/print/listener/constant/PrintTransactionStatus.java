@@ -4,5 +4,6 @@ public enum PrintTransactionStatus {
     QUEUED,
     SENT_FOR_PRINTING,
     PRINTED,
-    ERROR
+    ERROR,
+    SAVED_IN_LOCAL
 }
