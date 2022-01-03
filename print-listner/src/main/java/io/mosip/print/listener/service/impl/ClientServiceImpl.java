@@ -64,7 +64,7 @@ public class ClientServiceImpl implements ClientService {
 			URI dataShareUri = URI.create(dataShareUrl);
 			String credentials = restApiClient.getApi(dataShareUri, String.class);
 			String decryptedData = cryptoCoreUtil.decrypt(credentials);
-			String filePath = applicationContext.getPartnerResourCeBundle().getString("partner.pdf.download.path");
+			String filePath = env.getProperty("partner.pdf.download.path");
 			if(!filePath.endsWith("/"))
 				filePath = filePath + "/";
 
