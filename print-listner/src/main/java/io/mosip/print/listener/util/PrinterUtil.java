@@ -157,13 +157,13 @@ public class PrinterUtil {
             }
         };
         try {
+            activeMQListener.runQueue();
             boolean printRequired  = env.getProperty("mosip.print.pdf.printing.required", boolean.class);
 
             if(printRequired) {
                 Thread healthCheckThread = new Thread(runnable, "Printer Health Check");
                 healthCheckThread.setPriority(Thread.MAX_PRIORITY);
                 healthCheckThread.start();
-                activeMQListener.runQueue();
                 while(true) {
                     Thread healthCheckThread1 = new Thread(runnable, "Printer Health Check");
                     healthCheckThread1.setPriority(Thread.MAX_PRIORITY);
