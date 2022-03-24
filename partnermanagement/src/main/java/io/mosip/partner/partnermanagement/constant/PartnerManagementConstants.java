@@ -6,8 +6,8 @@ import lombok.Getter;
 public enum PartnerManagementConstants {
     PARTNER_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-001", "Partner Creation Successful"),
     PARTNER_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-001", "Partner Creation Un-Successful"),
-    CA_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-003", "CA/SUBCA Certificate Upload Success"),
-    CA_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-003", "CA/SUBCA Certificate Upload Failed"),
+    KEYMANAGR_CA_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-003", "CA/SUBCA Certificate Upload Success in Key Manager"),
+    KEYMANAGR_CA_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-003", "CA/SUBCA Certificate Upload Failed  in Key Manager"),
     PC_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-004", "Partner Certificate Upload Success"),
     PC_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-005", "API Key Generation"),
     API_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-005", "API Key Generation Failed"),
@@ -25,7 +25,12 @@ public enum PartnerManagementConstants {
     SECURE_BIOMETRICS_DETAIL_ADD_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-010", "Secure Biometrics Details Added Successful"),
     SECURE_BIOMETRICS_DETAIL_ADD_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-010", "Secure Biometrics Details Added Un-Successful"),
     SECURE_BIOMETRICS_ACTIVATION_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-011", "Secure Biometrics Activation Successful"),
-    SECURE_BIOMETRICS_ACTIVATION_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-011", "Secure Biometrics Activation Un-Successful");
+    SECURE_BIOMETRICS_ACTIVATION_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-011", "Secure Biometrics Activation Un-Successful"),
+    CERTIFICATE_FETCH_SUCCESSFUL(LoggerFileConstant.SUCCESS, "PMD-SUC-012","Certificate Fetch Successful"),
+    CERTIFICATE_FETCH_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-012","Certificate Fetch Failed"),
+    IDA_CA_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-013", "CA/SUBCA Certificate Upload Success in IDA"),
+    IDA_CA_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-013", "CA/SUBCA Certificate Upload Failed  in IDA");
+
 
     public final LoggerFileConstant errorStatus;
     public final String errorCode;

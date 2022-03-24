@@ -34,7 +34,7 @@ public class ResponseWrapper<T> {
 		for(ServiceError error : errors) {
 			Boolean errorPresent = false;
 			for (String value : ignoredList) {
-				if ((error.getErrorCode() != null && !error.getErrorCode().equals(value.toString())) || (error.getErrorCode() == null && !error.getMessage().contains(value.toString())))
+				if ((error.getErrorCode() != null && error.getErrorCode().equals(value.toString())) || (error.getErrorCode() == null && error.getMessage().contains(value.toString())))
 					errorPresent = true;
 			}
 

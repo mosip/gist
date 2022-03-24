@@ -321,8 +321,15 @@ public class KeyMgrUtil {
         return false;
     }
     
-    public String getKeysDirPath() {
+    public String getKeysDirPath() throws Exception {
     	String domain = environment.getProperty(DOMAIN_URL, "localhost").replace("https://", "").replace("http://", "").replace("/", "");
-		return System.getProperty("java.io.tmpdir") + File.separator + "IDA-" + domain;
+		String path = System.getProperty("java.io.tmpdir") + File.separator + "IDA-" + domain;
+        Path parentPath = Paths.get(path);
+        if (parentPath != null && Files.exists(parentPath)) {
+            throw new Exception("Path : " + path + " already exist. Please take Backup");
+        } else {
+            Files.createDirectories(parentPath);
+        }
+        return path;
     }
 }

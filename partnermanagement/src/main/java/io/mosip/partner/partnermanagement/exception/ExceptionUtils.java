@@ -3,8 +3,8 @@ package io.mosip.partner.partnermanagement.exception;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.partner.partnermanagement.util.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

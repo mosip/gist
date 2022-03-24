@@ -18,8 +18,8 @@ public class PartnerRequest{
 	@NotEmpty(message="Please provide partnerId")
 	public String partnerId;
 
-//	@ApiModelProperty(required = false, hidden = true)
-//	public String policyGroup;
+	@ApiModelProperty(required = false, hidden = true)
+	public String policyGroup;
 	
 	@NotEmpty(message = "Please provide organizationName")
 	public String organizationName;

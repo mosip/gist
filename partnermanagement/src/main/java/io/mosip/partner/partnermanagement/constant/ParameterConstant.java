@@ -16,7 +16,10 @@ public enum ParameterConstant {
     DEVICE_DETAIL_ADD_REQUEST("mosip.device.add.api"),
     DEVICE_ACTIVATE_REQUEST("mosip.device.activate.api"),
     SECURE_BIOMETRIC_ADD_REQUEST("mosip.secure.biometric.add.api"),
-    SECURE_BIOMETRIC_ACTIVATE_REQUEST("mosip.secure.biometric.activate.api");
+    SECURE_BIOMETRIC_ACTIVATE_REQUEST("mosip.secure.biometric.activate.api"),
+    FETCH_KEY_MANAGER_CERTIFICATE("mosip.key.manager.certificate.api"),
+    PARTNER_IDA_CA_CERTIFICATE_UPLOAD("mosip.ida.ca.certificate.upload.api");
+
 
     private final String value;
 

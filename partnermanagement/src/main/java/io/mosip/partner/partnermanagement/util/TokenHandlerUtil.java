@@ -3,8 +3,8 @@ package io.mosip.partner.partnermanagement.util;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.partner.partnermanagement.util.LoggerFactory;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTDecodeException;

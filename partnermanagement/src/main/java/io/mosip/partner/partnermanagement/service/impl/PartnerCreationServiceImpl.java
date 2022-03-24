@@ -1,5 +1,11 @@
 package io.mosip.partner.partnermanagement.service.impl;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.partner.partnermanagement.constant.MosipCertificateTypeConstant;
 import io.mosip.partner.partnermanagement.constant.ParameterConstant;
 import io.mosip.partner.partnermanagement.constant.PartnerManagementConstants;
 import io.mosip.partner.partnermanagement.logger.PartnerManagementLogger;
@@ -7,6 +13,7 @@ import io.mosip.partner.partnermanagement.model.ResponseModel;
 import io.mosip.partner.partnermanagement.model.apikey.ApiApproveReponseData;
 import io.mosip.partner.partnermanagement.model.certificate.CertificateChainResponseDto;
 import io.mosip.partner.partnermanagement.model.certificate.CertificateResponseData;
+import io.mosip.partner.partnermanagement.model.certificate.KeyManagerCertificateResponseData;
 import io.mosip.partner.partnermanagement.model.certificate.PartnerCertificateResponseData;
 import io.mosip.partner.partnermanagement.model.device.DeviceRequestDto;
 import io.mosip.partner.partnermanagement.model.device.DeviceResponseDto;
@@ -17,12 +24,16 @@ import io.mosip.partner.partnermanagement.model.securebiometrics.SecureBiometric
 import io.mosip.partner.partnermanagement.service.PartnerCreationService;
 import io.mosip.partner.partnermanagement.util.KeyMgrUtil;
 import io.mosip.partner.partnermanagement.util.RestApiClient;
-import org.slf4j.Logger;
+import org.apache.catalina.mapper.Mapper;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 @Service
@@ -44,7 +55,7 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         ResponseWrapper<PartnerResponse> response = null;
         ResponseModel responseModel = null;
         try {
-            logger.info("Calling Create Partner");
+            logger.info("Partner Self Creation");
             response = (ResponseWrapper<PartnerResponse>) callPostApi(env.getProperty(ParameterConstant.PARTNER_APPID.toString()), request);
 
             if (response.getResponse() != null) {
@@ -55,7 +66,10 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
             responseModel.setResponseData(response);
         } catch (Exception e) {
             responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_FAIL);
-            responseModel.setResponseData(e.getMessage());
+            response = new ResponseWrapper<>();
+            response.setErrors(new ArrayList<>());
+            response.getErrors().add(new ServiceError(PartnerManagementConstants.PARTNER_FAIL.getErrorCode(), e.getMessage()));
+            responseModel.setResponseData(response);
             e.printStackTrace();
         }
 
@@ -73,6 +87,32 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
             responseModel.setResponseData(certificateChainResponseDto);
         } catch (Exception e) {
             responseModel = new ResponseModel(PartnerManagementConstants.CERTIFICATE_GENERATION_FAIL);
+            ResponseWrapper wrapper = new ResponseWrapper();
+            wrapper.setErrors(new ArrayList<>());
+            wrapper.getErrors().add(new ServiceError(PartnerManagementConstants.CERTIFICATE_GENERATION_FAIL.getErrorCode(), e.getMessage()));
+            responseModel.setResponseData(wrapper);
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public ResponseModel uploadCACertificatesIntoKeyManager(Object request) {
+        ResponseWrapper<CertificateResponseData> response = null;
+        ResponseModel responseModel = null;
+        try {
+            logger.info("Calling Upload CA/SUB Certificate into KeyManager");
+            response = (ResponseWrapper<CertificateResponseData>) callPostApi(env.getProperty(ParameterConstant.PARTNER_CA_CERTIFICATE_UPLOAD.toString()), request);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.KEYMANAGR_CA_SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.KEYMANAGR_CA_FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.KEYMANAGR_CA_FAIL);
             responseModel.setResponseData(e.getMessage());
             e.printStackTrace();
         }
@@ -81,21 +121,21 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
     }
 
     @Override
-    public ResponseModel uploadCACertificates(Object request) {
+    public ResponseModel uploadCACertificatesIntoIDA(Object request) {
         ResponseWrapper<CertificateResponseData> response = null;
         ResponseModel responseModel = null;
         try {
-            logger.info("Calling Upload CA/SUB Certificate");
-            response = (ResponseWrapper<CertificateResponseData>) callPostApi(env.getProperty(ParameterConstant.PARTNER_CA_CERTIFICATE_UPLOAD.toString()), request);
+            logger.info("Calling Upload CA/SUB Certificate into IDA");
+            response = (ResponseWrapper<CertificateResponseData>) callPostApi(env.getProperty(ParameterConstant.PARTNER_IDA_CA_CERTIFICATE_UPLOAD.toString()), request);
 
             if (response.getResponse() != null) {
-                responseModel = new ResponseModel(PartnerManagementConstants.CA_SUCCESS);
+                responseModel = new ResponseModel(PartnerManagementConstants.IDA_CA_SUCCESS);
             } else {
-                responseModel = new ResponseModel(PartnerManagementConstants.CA_FAIL);
+                responseModel = new ResponseModel(PartnerManagementConstants.IDA_CA_FAIL);
             }
             responseModel.setResponseData(response);
         } catch (Exception e) {
-            responseModel = new ResponseModel(PartnerManagementConstants.CA_FAIL);
+            responseModel = new ResponseModel(PartnerManagementConstants.IDA_CA_FAIL);
             responseModel.setResponseData(e.getMessage());
             e.printStackTrace();
         }
@@ -297,21 +337,66 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         return responseModel;
     }
 
+    @Override
+    public ResponseModel getCertificateFromKeyManager(MosipCertificateTypeConstant constant) {
+            ResponseWrapper<KeyManagerCertificateResponseData> response = null;
+            ResponseModel responseModel = null;
+            try {
+                logger.info("Fetching Certificate from Key Manager " + constant.toString());
+
+                URI uri = UriComponentsBuilder.fromHttpUrl(env.getProperty(ParameterConstant.FETCH_KEY_MANAGER_CERTIFICATE.toString())).buildAndExpand(constant.toString()).toUri();
+
+                response = (ResponseWrapper<KeyManagerCertificateResponseData>) callGetApi(uri);
+
+                if (response.getResponse() != null) {
+                    responseModel = new ResponseModel(PartnerManagementConstants.CERTIFICATE_FETCH_SUCCESSFUL);
+                } else {
+                    responseModel = new ResponseModel(PartnerManagementConstants.CERTIFICATE_FETCH_FAIL);
+                }
+                ObjectMapper mapper = new ObjectMapper();
+                KeyManagerCertificateResponseData responseData = mapper.convertValue(response.getResponse(), KeyManagerCertificateResponseData.class);
+                responseModel.setResponseData(responseData);
+            } catch (Exception e) {
+                responseModel = new ResponseModel(PartnerManagementConstants.CERTIFICATE_FETCH_FAIL);
+                responseModel.setResponseData(e.getMessage());
+                e.printStackTrace();
+            }
+
+            return responseModel;
+    }
+
     public Object callPatchApi(String url, Object request) throws Exception {
-        logger.info("URL", url);
-        logger.info("Method", "PATCH");
-        logger.info("Request", request.toString());
+        logger.info("URL : " + url);
+        logger.info("Method : PATCH");
+        logger.info("Request : \n" + formatObjectToJson(request));
         Object response =  restApiClient.patchApi(url, MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
-        logger.info("Response", request.toString());
+        logger.info("Response : \n" + formatObjectToJson(response));
         return response;
     }
 
     public Object callPostApi(String url, Object request) throws Exception {
-        logger.info("URL", url);
-        logger.info("Method", "POST");
-        logger.info("Request", request.toString());
+        logger.info("URL : " + url);
+        logger.info("Method  : POST");
+        logger.info("Request :  \n" + formatObjectToJson(request));
         Object response =  restApiClient.postApi(url, MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
-        logger.info("Response", request.toString());
+        logger.info("Response : \n" + formatObjectToJson(response));
         return response;
+    }
+
+    public Object callGetApi(URI url) throws Exception {
+        logger.info("URL : " +  url);
+        logger.info("Method : GET");
+        Object response =  restApiClient.getApi(url, ResponseWrapper.class);
+        logger.info("Response : \n" + formatObjectToJson(response));
+        return response;
+    }
+
+    public String formatObjectToJson(Object object) {
+        ObjectWriter writer = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        try {
+            return writer.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            return object.toString();
+        }
     }
 }
