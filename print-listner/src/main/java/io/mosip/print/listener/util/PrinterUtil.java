@@ -6,6 +6,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.listener.activemq.ActiveMQListener;
 import io.mosip.print.listener.constant.LoggerFileConstant;
 import io.mosip.print.listener.dto.PrinterInfo;
+import io.mosip.print.listener.exception.ExceptionUtils;
 import io.mosip.print.listener.exception.PlatformErrorMessages;
 import io.mosip.print.listener.logger.PrintListenerLogger;
 import io.mosip.print.listener.service.impl.ClientServiceImpl;
@@ -173,8 +174,7 @@ public class PrinterUtil {
             }
         } catch (InterruptedException e) {
             clientLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                    LoggerFileConstant.REGISTRATIONID.toString(), "PRINTER HEALTH CHECK - " + e.getMessage(), e.toString());
-            e.printStackTrace();
+                    LoggerFileConstant.REGISTRATIONID.toString(), "PRINTER HEALTH CHECK - " + e.getMessage(), ExceptionUtils.getStackTrace(e));
         }
     }
 }

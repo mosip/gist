@@ -31,6 +31,7 @@ import io.mosip.print.listener.dto.PrintStatusRequestDto;
 import io.mosip.print.listener.exception.ExceptionUtils;
 import io.mosip.print.listener.model.Event;
 import io.mosip.print.listener.model.EventModel;
+import io.mosip.print.listener.util.CSVLogWriter;
 import io.mosip.print.listener.util.DateUtils;
 import io.mosip.print.listener.util.Helpers;
 import io.mosip.print.listener.util.LoggerFactory;
@@ -149,6 +150,13 @@ public class ActiveMQListener {
 			printStatusRequestDto.setId(map.get("printId").toString());
 			MQResponseDto mqResponseDto = new MQResponseDto("mosip.print.pdf.response", printStatusRequestDto);
 			ResponseEntity<Object> mqResponse = new ResponseEntity<Object>(mqResponseDto, HttpStatus.OK);
+
+			String[] args = new String[]{map.get("printId").toString(),
+					"'" + map.get("refId").toString(),
+					PrintTransactionStatus.SENT_FOR_PRINTING.toString()};
+			CSVLogWriter.setLogMap(map.get("printId").toString(), args);
+			System.out.println("Message Received");
+
 			sendToQueue(mqResponse, 1);
 
 			final ObjectMapper mapper = new ObjectMapper();
@@ -176,7 +184,7 @@ public class ActiveMQListener {
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			e.printStackTrace();
+			System.out.println("ERROR :" + e.getMessage());
 		}
 	}
 
@@ -239,7 +247,7 @@ public class ActiveMQListener {
 				queueDetailsList.add(queueDetail);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("ERROR :" + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " +  e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 		}
@@ -268,7 +276,7 @@ public class ActiveMQListener {
 		} catch (JMSException e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			e.printStackTrace();
+			System.out.println("ERROR :" + e.getMessage());
 		}
 	}
 
@@ -298,7 +306,7 @@ public class ActiveMQListener {
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			e.printStackTrace();
+			System.out.println("ERROR :" + e.getMessage());
 		}
 
 	}
@@ -323,7 +331,7 @@ public class ActiveMQListener {
 		} catch (JMSException e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ", "ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			e.printStackTrace();
+			System.out.println("Error : " + e.getMessage());
 		}
 		return null;
 	}
@@ -356,11 +364,11 @@ public class ActiveMQListener {
 		} catch (JMSException e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ", "ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			e.printStackTrace();
+			System.out.println("ERROR :" + e.getMessage());
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			e.printStackTrace();
+			System.out.println("ERROR :" + e.getMessage());
 		}
 		return flag;
 	}
@@ -377,11 +385,11 @@ public class ActiveMQListener {
 		} catch (JMSException e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			e.printStackTrace();
+			System.out.println("ERROR :" + e.getMessage());
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			e.printStackTrace();
+			System.out.println("ERROR :" + e.getMessage());
 		}
 		return flag;
 	}
@@ -408,7 +416,7 @@ public class ActiveMQListener {
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			e.printStackTrace();
+			System.out.println("ERROR :" + e.getMessage());
 		}
 	}
 }

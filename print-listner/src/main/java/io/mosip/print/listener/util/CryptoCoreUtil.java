@@ -89,7 +89,6 @@ public class CryptoCoreUtil {
 		int keyDemiliterIndex = getSplitterIndex(requestData, 0, keySplitter);
 		byte[] encryptedKey = copyOfRange(requestData, 0, keyDemiliterIndex);
 		byte[] decryptedSymmetricKey = null;
-		try {
 			encryptedData = copyOfRange(requestData, keyDemiliterIndex + keySplitterLength, cipherKeyandDataLength);
 
 			if (isThumbprint) {
@@ -104,10 +103,6 @@ public class CryptoCoreUtil {
 
 			symmetricKey = new SecretKeySpec(decryptedSymmetricKey, 0, decryptedSymmetricKey.length, "AES");
 			return symmetricDecrypt(symmetricKey, encryptedData, null);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		throw new Exception("Not able to decrypt the data.");
 	}
 
 	private static int getSplitterIndex(byte[] encryptedData, int keyDemiliterIndex, String keySplitter) {

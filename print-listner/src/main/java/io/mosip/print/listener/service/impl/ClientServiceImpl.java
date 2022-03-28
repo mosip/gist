@@ -59,11 +59,14 @@ public class ClientServiceImpl implements ClientService {
 	public void generateCard(EventModel eventModel) {
 
 		try {
+			System.out.println("Processing Message RID :  " + eventModel.getEvent().getId());
 			String dataShareUrl = eventModel.getEvent().getDataShareUri();
 			dataShareUrl = dataShareUrl.replace("http://", "https://");
 			URI dataShareUri = URI.create(dataShareUrl);
 			String credentials = restApiClient.getApi(dataShareUri, String.class);
+			System.out.println("Data Decryption Started RID :  " + eventModel.getEvent().getId());
 			String decryptedData = cryptoCoreUtil.decrypt(credentials);
+			System.out.println("Data Decryption Completed RID :  " + eventModel.getEvent().getId());
 			String filePath = env.getProperty("partner.pdf.download.path");
 			if(!filePath.endsWith("/"))
 				filePath = filePath + "/";
@@ -74,33 +77,51 @@ public class ClientServiceImpl implements ClientService {
 			os.close();
 
 			boolean printRequired  = env.getProperty("mosip.print.pdf.printing.required", boolean.class);
+			System.out.println("Print Required :  " + printRequired);
 
 			if(printRequired) {
+				System.out.println("Print Started RID :  " + eventModel.getEvent().getId());
+
 				if (printerUtil.initiatePrint(pdfFile.getName())) {
+					System.out.println("Print Completed Successfully RID :  " + eventModel.getEvent().getId());
 					PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
 					printStatusRequestDto.setPrintStatus(PrintTransactionStatus.PRINTED);
 					printStatusRequestDto.setProcessedTime(DateUtils.getUTCCurrentDateTimeString());
 					printStatusRequestDto.setId(eventModel.getEvent().getPrintId());
 					MQResponseDto mqResponseDto = new MQResponseDto("mosip.print.pdf.response", printStatusRequestDto);
 					ResponseEntity<Object> mqResponse = new ResponseEntity<Object>(mqResponseDto, HttpStatus.OK);
+
+					String[] args = new String[]{eventModel.getEvent().getPrintId(),
+							"'" + eventModel.getEvent().getId(),
+													PrintTransactionStatus.PRINTED.toString()};
+					CSVLogWriter.setLogMap(eventModel.getEvent().getPrintId(), args);
 					activeMQListener.sendToQueue(mqResponse, 1);
 				} else {
+					System.out.println("Print Failed RID :  " + eventModel.getEvent().getId());
+
 					clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
 							PlatformErrorMessages.PRT_FAILED.name());
 					throw new Exception(PlatformErrorMessages.PRT_FAILED.getMessage());
 				}
 			} else {
+				System.out.println("Print Saved Locally Successfully RID :  " + eventModel.getEvent().getId());
 				PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
 				printStatusRequestDto.setPrintStatus(PrintTransactionStatus.SAVED_IN_LOCAL);
 				printStatusRequestDto.setProcessedTime(DateUtils.getUTCCurrentDateTimeString());
 				printStatusRequestDto.setId(eventModel.getEvent().getPrintId());
 				MQResponseDto mqResponseDto = new MQResponseDto("mosip.print.pdf.response", printStatusRequestDto);
 				ResponseEntity<Object> mqResponse = new ResponseEntity<Object>(mqResponseDto, HttpStatus.OK);
+
+				String[] args = new String[]{eventModel.getEvent().getPrintId(),
+						"'" + eventModel.getEvent().getId(),
+						PrintTransactionStatus.SAVED_IN_LOCAL.toString()};
+				CSVLogWriter.setLogMap(eventModel.getEvent().getPrintId(), args);
 				activeMQListener.sendToQueue(mqResponse, 1);
 			}
+			CSVLogWriter.writePrintStatus();
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Error :  " + e.getMessage());
 			clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR : " + e.getMessage());
 			clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 
@@ -113,11 +134,17 @@ public class ClientServiceImpl implements ClientService {
 				MQResponseDto mqResponseDto = new MQResponseDto("mosip.print.pdf.response", printStatusRequestDto);
 				ResponseEntity<Object> mqResponse = new ResponseEntity<Object>(mqResponseDto, HttpStatus.OK);
 
+				String[] args = new String[]{eventModel.getEvent().getPrintId(),
+						"'" + eventModel.getEvent().getId(),
+						PrintTransactionStatus.ERROR.toString()};
+				CSVLogWriter.setLogMap(eventModel.getEvent().getPrintId(), args);
+				CSVLogWriter.writePrintStatus();
+
 				activeMQListener.sendToQueue(mqResponse, 1);
 			} catch (Exception ex) {
 				clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR : " + e.getMessage());
 				clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-				ex.printStackTrace();
+				CSVLogWriter.writePrintStatus();
 			}
 		}
 	}
