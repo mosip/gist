@@ -25,7 +25,7 @@ public class CSVLogWriter {
 
 
     private CSVLogWriter() {
-        File csvFile = new File("logs/RIDPrintStatus.csv");
+        File csvFile = new File("RIDPrintStatus.csv");
         try {
             if (!csvFile.exists()) {
                 csvFile.createNewFile();

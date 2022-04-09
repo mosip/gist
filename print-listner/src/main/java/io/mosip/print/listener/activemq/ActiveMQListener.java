@@ -119,6 +119,9 @@ public class ActiveMQListener {
 	@Value("${local.development}")
 	private boolean localDevelopment;
 
+	@Value("${print.activemq.json.load.from.disk}")
+	private boolean localDiskConf;
+
 	public String outBoundQueue;
 
 	@Autowired
@@ -201,9 +204,11 @@ public class ActiveMQListener {
 		}
 	}
 
-	public static String getJson(String configServerFileStorageURL, String uri, boolean localQueueConf) throws IOException, URISyntaxException {
+	public static String getJson(String configServerFileStorageURL, String uri, boolean localQueueConf, boolean localDiskConf) throws IOException, URISyntaxException {
 		if (localQueueConf) {
 			return Helpers.readFileFromResources("print-activemq-listener.json");
+		} else if(localDiskConf) {
+				return Helpers.readFileFromLocalPath(uri);
 		} else {
 			RestTemplate restTemplate = new RestTemplate();
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","Json URL " + configServerFileStorageURL + " : " + uri);
@@ -214,7 +219,7 @@ public class ActiveMQListener {
 	public List<PrintMQDetails> getQueueDetails() throws IOException, URISyntaxException {
 		List<PrintMQDetails> queueDetailsList = new ArrayList<>();
 
-		String printQueueJsonStringValue = getJson(configServerFileStorageURL, printActiveMQListenerJson, localDevelopment);
+		String printQueueJsonStringValue = getJson(configServerFileStorageURL, printActiveMQListenerJson, localDevelopment, localDiskConf);
 
 		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ",printQueueJsonStringValue);
 		JSONObject printQueueJson;

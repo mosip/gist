@@ -2,6 +2,7 @@ package io.mosip.print.listener.service.impl;
 
 import java.awt.print.PrinterJob;
 import java.io.*;
+import java.net.InetAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
@@ -68,6 +69,16 @@ public class ClientServiceImpl implements ClientService {
 			String decryptedData = cryptoCoreUtil.decrypt(credentials);
 			System.out.println("Data Decryption Completed RID :  " + eventModel.getEvent().getId());
 			String filePath = env.getProperty("partner.pdf.download.path");
+			if(!printerUtil.isPrintArchievePathExist()) {
+				InetAddress address = InetAddress.getLocalHost();
+				System.out.println("PDF Archieve Path not exist. Path : " + filePath + ", RID : " + eventModel.getEvent().getId());
+
+				clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
+						PlatformErrorMessages.PRT_PATH_NOT_FOUND.name() + "Machine Id : " + address.getHostName() + ", RID : " + eventModel.getEvent().getId());
+				throw new Exception(PlatformErrorMessages.PRT_PATH_NOT_FOUND.getMessage() + "Machine Id : " + address.getHostName() + ", RID : " + eventModel.getEvent().getId());
+			}
+
 			if(!filePath.endsWith("/"))
 				filePath = filePath + "/";
 

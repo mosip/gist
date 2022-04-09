@@ -124,6 +124,18 @@ public class PrinterUtil {
         }
     }
 
+    public boolean isPrintArchievePathExist() {
+        String filePath = env.getProperty("partner.pdf.download.path");
+
+        if(filePath != null && !filePath.isEmpty()) {
+            File pdfFile = new File(filePath);
+
+            if(pdfFile.exists() && pdfFile.isDirectory())
+                return true;
+        }
+        return false;
+    }
+
     public void printerHealthCheck() {
         Runnable runnable = new Runnable() {
             @Override
