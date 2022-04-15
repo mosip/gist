@@ -19,6 +19,7 @@ public class PrintListenerApplication {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext configurableApplicationContext = SpringApplication.run(PrintListenerApplication.class, args);
+            configurableApplicationContext.getBean(PrinterUtil.class).isPrintArchievePathExist();
         configurableApplicationContext.getBean(PrinterUtil.class).printerHealthCheck();
     }
 }

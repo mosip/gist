@@ -1,5 +1,6 @@
 package io.mosip.print.listener.activemq;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
@@ -191,7 +192,7 @@ public class ActiveMQListener {
 		}
 	}
 
-	public void sendToQueue(ResponseEntity<Object> obj, Integer textType) throws JsonProcessingException, UnsupportedEncodingException {
+	public void sendToQueue(ResponseEntity<Object> obj, Integer textType) throws Exception {
 		final ObjectMapper mapper = new ObjectMapper();
 		mapper.findAndRegisterModules();
 		mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
@@ -204,7 +205,7 @@ public class ActiveMQListener {
 		}
 	}
 
-	public static String getJson(String configServerFileStorageURL, String uri, boolean localQueueConf, boolean localDiskConf) throws IOException, URISyntaxException {
+	public static String getJson(String configServerFileStorageURL, String uri, boolean localQueueConf, boolean localDiskConf) throws URISyntaxException, IOException {
 		if (localQueueConf) {
 			return Helpers.readFileFromResources("print-activemq-listener.json");
 		} else if(localDiskConf) {
@@ -216,7 +217,7 @@ public class ActiveMQListener {
 		}
 	}
 
-	public List<PrintMQDetails> getQueueDetails() throws IOException, URISyntaxException {
+	public List<PrintMQDetails> getQueueDetails() throws Exception {
 		List<PrintMQDetails> queueDetailsList = new ArrayList<>();
 
 		String printQueueJsonStringValue = getJson(configServerFileStorageURL, printActiveMQListenerJson, localDevelopment, localDiskConf);
@@ -226,7 +227,6 @@ public class ActiveMQListener {
 		PrintMQDetails queueDetail = new PrintMQDetails();
 		Gson g = new Gson();
 
-		try {
 			printQueueJson = g.fromJson(printQueueJsonStringValue, JSONObject.class);
 
 			ArrayList<Map> printQueueJsonArray = (ArrayList<Map>) printQueueJson.get(PRINTMQ);
@@ -251,11 +251,7 @@ public class ActiveMQListener {
 				queueDetail.setName(queueName);
 				queueDetailsList.add(queueDetail);
 			}
-		} catch (Exception e) {
-			System.out.println("ERROR :" + e.getMessage());
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " +  e.getMessage());
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-		}
+
 		return queueDetailsList;
 	}
 
@@ -268,8 +264,7 @@ public class ActiveMQListener {
 		return value;
 	}
 
-	public void setup() {
-		try {
+	public void setup() throws Exception {
 			if (connection == null || ((ActiveMQConnection) connection).isClosed()) {
 				connection = activeMQConnectionFactory.createConnection();
 
@@ -278,11 +273,6 @@ public class ActiveMQListener {
 					this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 				}
 			}
-		} catch (JMSException e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
-		}
 	}
 
 	public void runQueue() {
@@ -308,6 +298,11 @@ public class ActiveMQListener {
 				throw new Exception("Queue Connection Not Found");
 
 			}
+		} catch (IOException e) {
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
+			System.out.println("ERROR :" + e.getMessage());
+			System.exit(1);
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
@@ -328,16 +323,10 @@ public class ActiveMQListener {
 		}
 
 		MessageConsumer consumer;
-		try {
 			destination = session.createQueue(address);
 			consumer = session.createConsumer(destination);
 			consumer.setMessageListener(getListener(queueName, object));
 
-		} catch (JMSException e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ", "ERROR : " + e.getMessage());
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("Error : " + e.getMessage());
-		}
 		return null;
 	}
 
@@ -355,10 +344,9 @@ public class ActiveMQListener {
 		return null;
 	}
 
-	public Boolean send(byte[] message, String address) {
+	public Boolean send(byte[] message, String address) throws Exception {
 		boolean flag = false;
 
-		try {
 			initialSetup();
 			destination = session.createQueue(address);
 			MessageProducer messageProducer = session.createProducer(destination);
@@ -366,36 +354,19 @@ public class ActiveMQListener {
 			byteMessage.writeObject(message);
 			messageProducer.send(byteMessage);
 			flag = true;
-		} catch (JMSException e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ", "ERROR : " + e.getMessage());
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
-		} catch (Exception e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
-		}
+
 		return flag;
 	}
 
-	public Boolean send(String message, String address) {
+	public Boolean send(String message, String address) throws Exception {
 		boolean flag = false;
 
-		try {
 			initialSetup();
 			destination = session.createQueue(address);
 			MessageProducer messageProducer = session.createProducer(destination);
 			messageProducer.send(session.createTextMessage(message));
 			flag = true;
-		} catch (JMSException e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
-		} catch (Exception e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
-		}
+
 		return flag;
 	}
 
@@ -418,6 +389,11 @@ public class ActiveMQListener {
 			} else {
 				throw new Exception("Queue Connection Not Found");
 			}
+		} catch (IOException e) {
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
+			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
+			System.out.println("ERROR :" + e.getMessage());
+			System.exit(1);
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));

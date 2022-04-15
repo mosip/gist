@@ -61,29 +61,12 @@ public class PrinterUtil {
                 throw  new Exception("File " + fileName + " : Not found in the file storage");
             }
 
-            PrintService[] printServices = PrintServiceLookup.lookupPrintServices(null, null);
-            PrintService printer = null;
-            String printerName = env.getProperty("partner.printer.name");
-
-            if(printerName == null || printerName.isEmpty()) {
-                clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
-                        LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
-                                PlatformErrorMessages.PRT_NOT_CONFIG.getCode() + " " + PlatformErrorMessages.PRT_NOT_CONFIG.getMessage());
-                throw  new Exception(PlatformErrorMessages.PRT_NOT_CONFIG.getMessage());
-            }
-
-            for (PrintService printService : printServices) {
-                if (printService.getName().equals(printerName)) {
-                    System.out.println("Printer Name " + printerName);
-                    printer = printService;
-                    break;
-                }
-            }
  //           PrintServiceAttributeSet set = printer.getAttributes();
   //          PrinterState state = printer.getAttribute(PrinterState.class);
 
-            if (printer != null && pdfFile != null) {
-                if (isPrinterOnLine(printer)) {
+            if (pdfFile != null) {
+                PrintService printer = isPrinterOnLine();
+                if (printer != null) {
                     document = PDDocument.load(pdfFile);
                     PrinterJob job = PrinterJob.getPrinterJob();
                     job.setPageable(new PDFPageable(document));
@@ -92,13 +75,13 @@ public class PrinterUtil {
                 } else {
                     clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
                             LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed" ,
-                                    PlatformErrorMessages.PRT_OFFLINE.getCode() + " " + PlatformErrorMessages.PRT_OFFLINE.getMessage());
+                                    PlatformErrorMessages.PRT_NOT_FOUND.getCode() + " " + PlatformErrorMessages.PRT_NOT_FOUND.getMessage());
                     System.exit(1);
                 }
             } else {
                 clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
                         LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
-                                PlatformErrorMessages.PRT_NOT_FOUND.getCode() + " " + PlatformErrorMessages.PRT_NOT_FOUND.getMessage());
+                                PlatformErrorMessages.PDF_NOT_FOUND.getCode() + " " + PlatformErrorMessages.PDF_NOT_FOUND.getMessage());
                 throw  new Exception(PlatformErrorMessages.PRT_NOT_FOUND.getMessage());
             }
 
@@ -109,22 +92,49 @@ public class PrinterUtil {
         }
     }
 
-    public boolean isPrinterOnLine(PrintService printService) {
-        String printerName = printService.getName();
+    public PrintService isPrinterOnLine() {
+        try {
+            PrintService[] printServices = PrintServiceLookup.lookupPrintServices(null, null);
+            PrintService printer = null;
+            String printerName = env.getProperty("partner.printer.name");
 
+            if(printerName == null || printerName.isEmpty()) {
+                 throw  new Exception(PlatformErrorMessages.PRT_NOT_CONFIG.getMessage());
+            }
+
+            for (PrintService printService : printServices) {
+                if (printService.getName().equals(printerName)) {
+                    System.out.println("Printer Name " + printerName);
+                    printer = printService;
+                    break;
+                }
+            }
+
+            if(printer != null) {
         if (printerInfoMap.containsKey(printerName)) {
             PrinterInfo info = printerInfoMap.get(printerName);
             if (info.getWorkOffline().toLowerCase().equals("false")) {
-                return true;
+                        return printer;
             } else {
-                return false;
+                        throw  new Exception(PlatformErrorMessages.PRT_OFFLINE.getMessage());
             }
         } else {
-            return false;
+                    throw  new Exception(PlatformErrorMessages.PRT_NOT_FOUND.getMessage());
+                }
+            } else {
+                throw  new Exception(PlatformErrorMessages.PRT_NOT_FOUND.getMessage());
         }
+        } catch (Exception e) {
+            clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "PrinterUtil","ERROR : " + e.getMessage());
+            clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "PrinterUtil","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
+            System.out.println("ERROR :" + e.getMessage());
+            System.exit(1);
+        }
+        return null;
     }
 
     public boolean isPrintArchievePathExist() {
+        try {
         String filePath = env.getProperty("partner.pdf.download.path");
 
         if(filePath != null && !filePath.isEmpty()) {
@@ -132,6 +142,14 @@ public class PrinterUtil {
 
             if(pdfFile.exists() && pdfFile.isDirectory())
                 return true;
+                else
+                    throw  new Exception(PlatformErrorMessages.PRT_PATH_NOT_FOUND.getMessage());
+            }
+        } catch(Exception e) {
+            clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "PrinterUtil","ERROR : " + e.getMessage());
+            clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "PrinterUtil","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
+            System.out.println("ERROR :" + e.getMessage());
+            System.exit(1);
         }
         return false;
     }
@@ -170,19 +188,23 @@ public class PrinterUtil {
             }
         };
         try {
-            activeMQListener.runQueue();
             boolean printRequired  = env.getProperty("mosip.print.pdf.printing.required", boolean.class);
 
             if(printRequired) {
                 Thread healthCheckThread = new Thread(runnable, "Printer Health Check");
                 healthCheckThread.setPriority(Thread.MAX_PRIORITY);
                 healthCheckThread.start();
+                Thread.sleep(10000);
+                isPrinterOnLine();
+                activeMQListener.runQueue();
                 while(true) {
                     Thread healthCheckThread1 = new Thread(runnable, "Printer Health Check");
                     healthCheckThread1.setPriority(Thread.MAX_PRIORITY);
                     healthCheckThread1.start();
                     Thread.sleep(10000);
                 }
+            } else {
+                activeMQListener.runQueue();
             }
         } catch (InterruptedException e) {
             clientLogger.info(LoggerFileConstant.SESSIONID.toString(),

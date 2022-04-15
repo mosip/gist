@@ -138,22 +138,11 @@ public class CryptoCoreUtil {
 			throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException,
 			InvalidAlgorithmParameterException, InvalidKeyException {
 
-		Cipher cipher;
-		try {
-			cipher = Cipher.getInstance(RSA_ECB_OAEP_PADDING);
+		Cipher cipher = Cipher.getInstance(RSA_ECB_OAEP_PADDING);
 			OAEPParameterSpec oaepParams = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256,
 					PSpecified.DEFAULT);
 			cipher.init(Cipher.DECRYPT_MODE, privateKey, oaepParams);
 			return cipher.doFinal(data);
-		} catch (NoSuchAlgorithmException e) {
-			throw new NoSuchAlgorithmException(e);
-		} catch (NoSuchPaddingException e) {
-			throw new NoSuchPaddingException(e.getMessage());
-		} catch (InvalidKeyException e) {
-			throw new InvalidKeyException(e);
-		} catch (InvalidAlgorithmParameterException e) {
-			throw new InvalidAlgorithmParameterException(e);
-		}
 	}
 
 	/**
@@ -174,9 +163,8 @@ public class CryptoCoreUtil {
 		return encode.processBlock(paddedPlainText, 0, paddedPlainText.length);
 	}
 
-	private static byte[] symmetricDecrypt(SecretKey key, byte[] data, byte[] aad) {
+	private static byte[] symmetricDecrypt(SecretKey key, byte[] data, byte[] aad) throws Exception {
 		byte[] output = null;
-		try {
 			Cipher cipher = Cipher.getInstance("AES/GCM/PKCS5Padding");
 			byte[] randomIV = Arrays.copyOfRange(data, data.length - cipher.getBlockSize(), data.length);
 			SecretKeySpec keySpec = new SecretKeySpec(key.getEncoded(), "AES");
@@ -187,9 +175,7 @@ public class CryptoCoreUtil {
 				cipher.updateAAD(aad);
 			}
 			output = cipher.doFinal(Arrays.copyOf(data, data.length - cipher.getBlockSize()));
-		} catch (Exception e) {
 
-		}
 		return output;
 	}
 

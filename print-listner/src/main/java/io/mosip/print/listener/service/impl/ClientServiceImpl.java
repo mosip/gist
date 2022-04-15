@@ -157,6 +157,7 @@ public class ClientServiceImpl implements ClientService {
 				clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 				CSVLogWriter.writePrintStatus();
 			}
+			System.exit(1);
 		}
 	}
 }

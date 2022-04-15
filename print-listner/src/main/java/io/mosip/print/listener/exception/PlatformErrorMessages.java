@@ -76,7 +76,8 @@ public enum PlatformErrorMessages {
 	PRT_NOT_CONFIG(PlatformConstants.PRT_PRINT_PREFIX + "031", "Printer Name not configured Property file"),
 	PRT_OFFLINE(PlatformConstants.PRT_PRINT_PREFIX + "032", "Printer is Offline"),
 	PRT_NOT_FOUND(PlatformConstants.PRT_PRINT_PREFIX + "033", "Printer Name not found in Printer List"),
-	PRT_PATH_NOT_FOUND(PlatformConstants.PRT_PRINT_PREFIX + "034", "PDF Archieve Path not exist.");
+	PRT_PATH_NOT_FOUND(PlatformConstants.PRT_PRINT_PREFIX + "034", "PDF Archieve Path not exist."),
+	PDF_NOT_FOUND(PlatformConstants.PRT_PRINT_PREFIX + "035", "PDF file not found.");
 
 
 
