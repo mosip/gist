@@ -97,12 +97,11 @@ public class PartnerCreationController {
                 }
             } else {
                 ResponseModel partnerCertUploadResponse = responseEntity.getBody();
+                ResponseWrapper wrapper = (ResponseWrapper) partnerCertUploadResponse.getResponseData();
+                LinkedHashMap<String, String> partnerCertificateResponseData = (LinkedHashMap<String, String>) wrapper.getResponse();
+                deviceL1ResponseModel.setSignedCertificate(partnerCertificateResponseData.get("signedCertificateData"));
 
                 if (deviceL1Model.getDeviceProvider().getPartnerType().equals(PartnerTypes.DEVICE)) {
-                    ResponseWrapper wrapper = (ResponseWrapper) partnerCertUploadResponse.getResponseData();
-                    LinkedHashMap<String, String> partnerCertificateResponseData = (LinkedHashMap<String, String>) wrapper.getResponse();
-                    deviceL1ResponseModel.setSignedCertificate(partnerCertificateResponseData.get("signedCertificateData"));
-
                     // Upload Partner Signed Certificates as a CA Certificates
                     ResponseModel partnerSignedCACertUploadResponse =  uploadCACertificate(deviceL1Model.getDeviceProvider(), partnerCertificateResponseData.get("signedCertificateData"), CertificateStoreDBConstant.KEYMANAGER);
 
@@ -167,7 +166,6 @@ public class PartnerCreationController {
                         deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
                         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
                     }
-                    deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
                 }
             }
 
@@ -185,6 +183,7 @@ public class PartnerCreationController {
                     return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
                 }
             }
+            deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
         }
 
 /* ********************************************************************************************************************************** */
@@ -224,12 +223,11 @@ public class PartnerCreationController {
                 }
             } else {
                 ResponseModel ftmPartnerCertUploadResponse = ftmResponseEntity.getBody();
+                ResponseWrapper wrapper = (ResponseWrapper) ftmPartnerCertUploadResponse.getResponseData();
+                LinkedHashMap<String, String> partnerCertificateResponseData = (LinkedHashMap<String, String>) wrapper.getResponse();
+                ftmL1ResponseModel.setSignedCertificate(partnerCertificateResponseData.get("signedCertificateData"));
 
                 if (deviceL1Model.getFtmProvider().getPartnerType().equals(PartnerTypes.FTM)) {
-                    ResponseWrapper wrapper = (ResponseWrapper) ftmPartnerCertUploadResponse.getResponseData();
-                    LinkedHashMap<String, String> partnerCertificateResponseData = (LinkedHashMap<String, String>) wrapper.getResponse();
-                    ftmL1ResponseModel.setSignedCertificate(partnerCertificateResponseData.get("signedCertificateData"));
-
                     // Upload Partner Signed Certificates as a CA Certificates
                     ResponseModel partnerSignedCACertUploadResponse =  uploadCACertificate(deviceL1Model.getFtmProvider(), partnerCertificateResponseData.get("signedCertificateData"), CertificateStoreDBConstant.KEYMANAGER);
 
@@ -294,7 +292,6 @@ public class PartnerCreationController {
                         deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
                         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
                     }
-                    deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
                 }
             }
             // Upload All Certificates
@@ -312,6 +309,7 @@ public class PartnerCreationController {
                     return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
                 }
             }
+            deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
         }
 
         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.OK);
@@ -368,12 +366,11 @@ public class PartnerCreationController {
                 }
             } else {
                 ResponseModel partnerCertUploadResponse = responseEntity.getBody();
+                ResponseWrapper wrapper = (ResponseWrapper) partnerCertUploadResponse.getResponseData();
+                LinkedHashMap<String, String> partnerCertificateResponseData = (LinkedHashMap<String, String>) wrapper.getResponse();
+                deviceL1ResponseModel.setSignedCertificate(partnerCertificateResponseData.get("signedCertificateData"));
 
                 if (deviceL1Model.getDeviceProvider().getPartnerType().equals(PartnerTypes.DEVICE)) {
-                    ResponseWrapper wrapper = (ResponseWrapper) partnerCertUploadResponse.getResponseData();
-                    LinkedHashMap<String, String> partnerCertificateResponseData = (LinkedHashMap<String, String>) wrapper.getResponse();
-                    deviceL1ResponseModel.setSignedCertificate(partnerCertificateResponseData.get("signedCertificateData"));
-
                     // Upload Partner Signed Certificates as a CA Certificates
                     ResponseModel partnerSignedCACertUploadResponse =  uploadCACertificate(deviceL1Model.getDeviceProvider(), partnerCertificateResponseData.get("signedCertificateData"), CertificateStoreDBConstant.KEYMANAGER);
 
@@ -438,9 +435,9 @@ public class PartnerCreationController {
                         deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
                         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
                     }
-                    deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
                 }
             }
+            deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
         }
 
         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.OK);
