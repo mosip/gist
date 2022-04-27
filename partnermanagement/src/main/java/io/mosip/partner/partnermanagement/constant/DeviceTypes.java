@@ -7,7 +7,8 @@ public enum DeviceTypes {
     IRIS_SINGLE("Iris", "Single"),
     FINGERPRINT_SLAP("Finger", "Slab"),
     IRIS_DUAL("Iris", "Double"),
-    FACE_FACE("Face", "Full face");
+    FACE_FACE("Face", "Full face"),
+    FINGERPRINT_SINGLE("Finger", "Single"),;
 
     private String deviceTypeCode;
     private String deviceSubTypeCode;

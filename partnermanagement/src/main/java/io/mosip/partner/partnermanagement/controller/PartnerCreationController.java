@@ -119,54 +119,56 @@ public class PartnerCreationController {
             }
 
             // Upload Device Details
-            for (DeviceModel deviceModel : deviceL1Model.getDeviceProvider().getDeviceDetails()) {
-                RequestWrapper<Object> deviceAddRequest = addDeviceDetails(deviceModel, deviceL1Model.getDeviceProvider());
-                ResponseModel deviceAddResponse =   partnerCreationService.addDeviceDetails(deviceAddRequest);
+            if(deviceL1Model.getDeviceProvider().getDeviceDetails() != null && !deviceL1Model.getConfigurationType().equals(ConfigurationTypes.MOCK)) {
+                for (DeviceModel deviceModel : deviceL1Model.getDeviceProvider().getDeviceDetails()) {
+                    RequestWrapper<Object> deviceAddRequest = addDeviceDetails(deviceModel, deviceL1Model.getDeviceProvider());
+                    ResponseModel deviceAddResponse =   partnerCreationService.addDeviceDetails(deviceAddRequest);
 
-                if (deviceAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                    deviceL1ResponseModel.getErrors().add(deviceAddResponse);
+                    if (deviceAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                        deviceL1ResponseModel.getErrors().add(deviceAddResponse);
+                        deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
+                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+
+                    ResponseWrapper addResponseDto  = (ResponseWrapper) deviceAddResponse.getResponseData();
+                    LinkedHashMap<String, String> addResponse = (LinkedHashMap<String, String>) addResponseDto.getResponse();
+                    deviceL1ResponseModel.setDeviceId(addResponse.get("id"));
+
+                    // Activate Device
+                    RequestWrapper<Object> activateDeviceRequest = activateDevice(addResponse.get("id"), deviceL1Model.getDeviceProvider());
+                    ResponseModel activateDeviceResponse =   partnerCreationService.activateDevice(activateDeviceRequest);
+
+                    if (activateDeviceResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                        deviceL1ResponseModel.getErrors().add(activateDeviceResponse);
+                        deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
+                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+
+                    // Upload Secure Biometric Interface
+                    RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getDeviceProvider(), deviceModel);
+                    ResponseModel secureBiometricsAddResponse =   partnerCreationService.addSecureBiometricDetails(secureBiometricsAddRequest);
+
+                    if (secureBiometricsAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                        deviceL1ResponseModel.getErrors().add(secureBiometricsAddResponse);
+                        deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
+                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+
+                    ResponseWrapper secureBiometricsResponseDto  = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
+                    LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
+                    deviceL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
+
+                    // Activate Secure Biometric Interface
+                    RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getDeviceProvider());
+                    ResponseModel activateSecureBiometricsResponse =   partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
+
+                    if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                        deviceL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
+                        deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
+                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
                     deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
-                    return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
                 }
-
-                ResponseWrapper addResponseDto  = (ResponseWrapper) deviceAddResponse.getResponseData();
-                LinkedHashMap<String, String> addResponse = (LinkedHashMap<String, String>) addResponseDto.getResponse();
-                deviceL1ResponseModel.setDeviceId(addResponse.get("id"));
-
-                // Activate Device
-                RequestWrapper<Object> activateDeviceRequest = activateDevice(addResponse.get("id"), deviceL1Model.getDeviceProvider());
-                ResponseModel activateDeviceResponse =   partnerCreationService.activateDevice(activateDeviceRequest);
-
-                if (activateDeviceResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                    deviceL1ResponseModel.getErrors().add(activateDeviceResponse);
-                    deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
-                    return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
-                }
-
-                // Upload Secure Biometric Interface
-                RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getDeviceProvider(), deviceModel);
-                ResponseModel secureBiometricsAddResponse =   partnerCreationService.addSecureBiometricDetails(secureBiometricsAddRequest);
-
-                if (secureBiometricsAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                    deviceL1ResponseModel.getErrors().add(secureBiometricsAddResponse);
-                    deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
-                    return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
-                }
-
-                ResponseWrapper secureBiometricsResponseDto  = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
-                LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
-                deviceL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
-
-                // Activate Secure Biometric Interface
-                RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getDeviceProvider());
-                ResponseModel activateSecureBiometricsResponse =   partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
-
-                if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                    deviceL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
-                    deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
-                    return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
-                }
-                deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
             }
 
             // Upload All Certificates
@@ -244,56 +246,57 @@ public class PartnerCreationController {
             }
 
             // Upload Device Details
-            for (DeviceModel deviceModel : deviceL1Model.getFtmProvider().getDeviceDetails()) {
-                RequestWrapper<Object> deviceAddRequest = addDeviceDetails(deviceModel, deviceL1Model.getFtmProvider());
-                ResponseModel deviceAddResponse =   partnerCreationService.addDeviceDetails(deviceAddRequest);
+            if(deviceL1Model.getFtmProvider().getDeviceDetails() != null && !deviceL1Model.getConfigurationType().equals(ConfigurationTypes.MOCK)) {
+                for (DeviceModel deviceModel : deviceL1Model.getFtmProvider().getDeviceDetails()) {
+                    RequestWrapper<Object> deviceAddRequest = addDeviceDetails(deviceModel, deviceL1Model.getFtmProvider());
+                    ResponseModel deviceAddResponse = partnerCreationService.addDeviceDetails(deviceAddRequest);
 
-                if (deviceAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                    ftmL1ResponseModel.getErrors().add(deviceAddResponse);
+                    if (deviceAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                        ftmL1ResponseModel.getErrors().add(deviceAddResponse);
+                        deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
+                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+
+                    ResponseWrapper addResponseDto = (ResponseWrapper) deviceAddResponse.getResponseData();
+                    LinkedHashMap<String, String> addResponse = (LinkedHashMap<String, String>) addResponseDto.getResponse();
+                    ftmL1ResponseModel.setDeviceId(addResponse.get("id"));
+
+                    // Activate Device
+                    RequestWrapper<Object> activateDeviceRequest = activateDevice(addResponse.get("id"), deviceL1Model.getFtmProvider());
+                    ResponseModel activateDeviceResponse = partnerCreationService.activateDevice(activateDeviceRequest);
+
+                    if (activateDeviceResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                        ftmL1ResponseModel.getErrors().add(activateDeviceResponse);
+                        deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
+                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+
+                    // Upload Secure Biometric Interface
+                    RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getFtmProvider(), deviceModel);
+                    ResponseModel secureBiometricsAddResponse = partnerCreationService.addSecureBiometricDetails(secureBiometricsAddRequest);
+
+                    if (secureBiometricsAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                        ftmL1ResponseModel.getErrors().add(secureBiometricsAddResponse);
+                        deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
+                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+
+                    ResponseWrapper secureBiometricsResponseDto = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
+                    LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
+                    ftmL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
+
+                    // Activate Secure Biometric Interface
+                    RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getFtmProvider());
+                    ResponseModel activateSecureBiometricsResponse = partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
+
+                    if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                        ftmL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
+                        deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
+                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
                     deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
-                    return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
                 }
-
-                ResponseWrapper addResponseDto  = (ResponseWrapper) deviceAddResponse.getResponseData();
-                LinkedHashMap<String, String> addResponse = (LinkedHashMap<String, String>) addResponseDto.getResponse();
-                ftmL1ResponseModel.setDeviceId(addResponse.get("id"));
-
-                // Activate Device
-                RequestWrapper<Object> activateDeviceRequest = activateDevice(addResponse.get("id"), deviceL1Model.getFtmProvider());
-                ResponseModel activateDeviceResponse =   partnerCreationService.activateDevice(activateDeviceRequest);
-
-                if (activateDeviceResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                    ftmL1ResponseModel.getErrors().add(activateDeviceResponse);
-                    deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
-                    return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
-                }
-
-                // Upload Secure Biometric Interface
-                RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getFtmProvider(), deviceModel);
-                ResponseModel secureBiometricsAddResponse =   partnerCreationService.addSecureBiometricDetails(secureBiometricsAddRequest);
-
-                if (secureBiometricsAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                    ftmL1ResponseModel.getErrors().add(secureBiometricsAddResponse);
-                    deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
-                    return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
-                }
-
-                ResponseWrapper secureBiometricsResponseDto  = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
-                LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
-                ftmL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
-
-                // Activate Secure Biometric Interface
-                RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getFtmProvider());
-                ResponseModel activateSecureBiometricsResponse =   partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
-
-                if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                    ftmL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
-                    deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
-                    return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
-                }
-                deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
             }
-
             // Upload All Certificates
             List<MosipCertificateTypeConstant> baseCertificatesUploadForIDA = new ArrayList<>();
 
@@ -387,7 +390,7 @@ public class PartnerCreationController {
             }
 
             // Upload Device Details
-            if (deviceL1Model.getDeviceProvider().getDeviceDetails() != null) {
+            if (deviceL1Model.getDeviceProvider().getDeviceDetails() != null && !deviceL1Model.getConfigurationType().equals(ConfigurationTypes.MOCK)) {
                 for (DeviceModel deviceModel : deviceL1Model.getDeviceProvider().getDeviceDetails()) {
                     RequestWrapper<Object> deviceAddRequest = addDeviceDetails(deviceModel, deviceL1Model.getDeviceProvider());
                     ResponseModel deviceAddResponse =   partnerCreationService.addDeviceDetails(deviceAddRequest);
