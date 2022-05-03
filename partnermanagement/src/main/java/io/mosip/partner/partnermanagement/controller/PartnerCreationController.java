@@ -86,6 +86,8 @@ public class PartnerCreationController {
             deviceL1ResponseModel.setPartnerId(deviceL1Model.getDeviceProvider().getPartnerId());
 
             List<MosipCertificateTypeConstant> baseCertificatesUpload = new ArrayList<>();
+            baseCertificatesUpload.add(MosipCertificateTypeConstant.ROOT);
+            baseCertificatesUpload.add(MosipCertificateTypeConstant.PMS);
 
             // Upload All Certificates
             ResponseEntity<ResponseModel> responseEntity = uploadAllCertificates(deviceL1Model.getDeviceProvider(), deviceL1Model.getDeviceProvider().getCertificateDetails(), baseCertificatesUpload);
@@ -153,6 +155,8 @@ public class PartnerCreationController {
                     if (secureBiometricsAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
                         deviceL1ResponseModel.getErrors().add(secureBiometricsAddResponse);
                         deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
+                        ResponseWrapper wrapper = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
+                        if(!wrapper.canBeIgnored())
                         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
                     }
 
@@ -212,6 +216,8 @@ public class PartnerCreationController {
 
             // Upload All Certificates
             List<MosipCertificateTypeConstant> baseCertificatesUpload = new ArrayList<>();
+            baseCertificatesUpload.add(MosipCertificateTypeConstant.ROOT);
+            baseCertificatesUpload.add(MosipCertificateTypeConstant.PMS);
 
             ResponseEntity<ResponseModel> ftmResponseEntity = uploadAllCertificates(deviceL1Model.getFtmProvider(), deviceL1Model.getFtmProvider().getCertificateDetails(), baseCertificatesUpload);
 
@@ -279,6 +285,8 @@ public class PartnerCreationController {
                     if (secureBiometricsAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
                         ftmL1ResponseModel.getErrors().add(secureBiometricsAddResponse);
                         deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
+                        ResponseWrapper wrapper = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
+                        if(!wrapper.canBeIgnored())
                         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
                     }
 
