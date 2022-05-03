@@ -29,7 +29,7 @@ public class ResponseWrapper<T> {
 	private List<ServiceError> errors = new ArrayList<>();
 
 	public boolean canBeIgnored() {
-		String[] ignoredList = {"KER-PCM-003", "PMS_PRT_051"};
+		String[] ignoredList = {"KER-PCM-003", "PMS_PRT_051", "PMS_AUT_512"};
 		Boolean ignore = true;
 		for(ServiceError error : errors) {
 			Boolean errorPresent = false;

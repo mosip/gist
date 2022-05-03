@@ -21,6 +21,7 @@ import io.mosip.partner.partnermanagement.model.policy.PolicyMappingResponseData
 import io.mosip.partner.partnermanagement.model.restapi.Metadata;
 import io.mosip.partner.partnermanagement.model.securebiometrics.SecureBiometricActivateRequestDto;
 import io.mosip.partner.partnermanagement.model.securebiometrics.SecureBiometricsRequestDto;
+import io.mosip.partner.partnermanagement.model.securebiometrics.SecureBiometricsRequestDtoForLTS;
 import io.mosip.partner.partnermanagement.service.PartnerCreationService;
 import io.mosip.partner.partnermanagement.util.DateUtils;
 import io.mosip.partner.partnermanagement.util.RestApiClient;
@@ -146,7 +147,7 @@ public class PartnerCreationController {
                     }
 
                     // Upload Secure Biometric Interface
-                    RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getDeviceProvider(), deviceModel);
+                    RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getDeviceProvider(), deviceModel, deviceL1Model.getEnvironmentVersion());
                     ResponseModel secureBiometricsAddResponse =   partnerCreationService.addSecureBiometricDetails(secureBiometricsAddRequest);
 
                     if (secureBiometricsAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
@@ -272,7 +273,7 @@ public class PartnerCreationController {
                     }
 
                     // Upload Secure Biometric Interface
-                    RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getFtmProvider(), deviceModel);
+                    RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getFtmProvider(), deviceModel, deviceL1Model.getEnvironmentVersion());
                     ResponseModel secureBiometricsAddResponse = partnerCreationService.addSecureBiometricDetails(secureBiometricsAddRequest);
 
                     if (secureBiometricsAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
@@ -415,27 +416,29 @@ public class PartnerCreationController {
                     }
 
                     // Upload Secure Biometric Interface
-                    RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getDeviceProvider(), deviceModel);
+                    RequestWrapper<Object> secureBiometricsAddRequest = addSecureBiometricDetails(addResponse.get("id"), deviceL1Model.getDeviceProvider(), deviceModel, deviceL1Model.getEnvironmentVersion());
                     ResponseModel secureBiometricsAddResponse =   partnerCreationService.addSecureBiometricDetails(secureBiometricsAddRequest);
 
                     if (secureBiometricsAddResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
                         deviceL1ResponseModel.getErrors().add(secureBiometricsAddResponse);
                         deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
+                        ResponseWrapper wrapper = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
+                        if(!wrapper.canBeIgnored())
                         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
-                    }
+                    } else {
+                        ResponseWrapper secureBiometricsResponseDto  = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
+                        LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
+                        deviceL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
 
-                    ResponseWrapper secureBiometricsResponseDto  = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
-                    LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
-                    deviceL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
+                        // Activate Secure Biometric Interface
+                        RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getDeviceProvider());
+                        ResponseModel activateSecureBiometricsResponse =   partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
 
-                    // Activate Secure Biometric Interface
-                    RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getDeviceProvider());
-                    ResponseModel activateSecureBiometricsResponse =   partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
-
-                    if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                        deviceL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
-                        deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
-                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                        if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                            deviceL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
+                            deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
+                            return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                        }
                     }
                 }
             }
@@ -863,25 +866,44 @@ public class PartnerCreationController {
         return createRequestWrapper(activateRequestDto);
     }
 
-    private RequestWrapper<Object> addSecureBiometricDetails(String addResponse, PartnerModel partnerModel, DeviceModel deviceModel) {
-        SecureBiometricsRequestDto biometricsRequestDto = new SecureBiometricsRequestDto();
-        biometricsRequestDto.setDeviceDetailId(addResponse);
-        if (deviceModel.getSecureBiometricsModel() != null) {
-            biometricsRequestDto.setSwBinaryHash(deviceModel.getSecureBiometricsModel().getSwBinaryHash());
-            biometricsRequestDto.setSwCreateDateTime(deviceModel.getSecureBiometricsModel().getSwCreateDateTime());
-            biometricsRequestDto.setSwExpiryDateTime(deviceModel.getSecureBiometricsModel().getSwExpiryDateTime());
-            biometricsRequestDto.setSwVersion(deviceModel.getSecureBiometricsModel().getSwVersion());
-        } else {
-            LocalDateTime dateTime = DateUtils.getUTCCurrentDateTime();
-            LocalDateTime dateTimeExp = dateTime.plusYears(2);
-            biometricsRequestDto.setSwBinaryHash("1");
-            biometricsRequestDto.setSwCreateDateTime(DateUtils.formatToISOString(dateTime));
-            biometricsRequestDto.setSwExpiryDateTime(DateUtils.formatToISOString(dateTimeExp));
-            biometricsRequestDto.setSwVersion("1.0.0");
-        }
+    private RequestWrapper<Object> addSecureBiometricDetails(String addResponse, PartnerModel partnerModel, DeviceModel deviceModel, APITypes apiTypes) {
+       if(apiTypes.equals(APITypes.LTS)) {
+           SecureBiometricsRequestDtoForLTS biometricsRequestDto = new SecureBiometricsRequestDtoForLTS();
+           if (deviceModel.getSecureBiometricsModel() != null) {
+               biometricsRequestDto.setSwBinaryHash(deviceModel.getSecureBiometricsModel().getSwBinaryHash());
+               biometricsRequestDto.setSwCreateDateTime(deviceModel.getSecureBiometricsModel().getSwCreateDateTime());
+               biometricsRequestDto.setSwExpiryDateTime(deviceModel.getSecureBiometricsModel().getSwExpiryDateTime());
+               biometricsRequestDto.setSwVersion(deviceModel.getSecureBiometricsModel().getSwVersion());
+           } else {
+               LocalDateTime dateTime = DateUtils.getUTCCurrentDateTime();
+               LocalDateTime dateTimeExp = dateTime.plusYears(2);
+               biometricsRequestDto.setSwBinaryHash("1");
+               biometricsRequestDto.setSwCreateDateTime(DateUtils.formatToISOString(dateTime));
+               biometricsRequestDto.setSwExpiryDateTime(DateUtils.formatToISOString(dateTimeExp));
+               biometricsRequestDto.setSwVersion("1.0.0");
+           }
+           biometricsRequestDto.setProviderId(partnerModel.getPartnerId());
+           return createRequestWrapper(biometricsRequestDto);
+       } else {
+           SecureBiometricsRequestDto biometricsRequestDto = new SecureBiometricsRequestDto();
+           if (deviceModel.getSecureBiometricsModel() != null) {
+               biometricsRequestDto.setSwBinaryHash(deviceModel.getSecureBiometricsModel().getSwBinaryHash());
+               biometricsRequestDto.setSwCreateDateTime(deviceModel.getSecureBiometricsModel().getSwCreateDateTime());
+               biometricsRequestDto.setSwExpiryDateTime(deviceModel.getSecureBiometricsModel().getSwExpiryDateTime());
+               biometricsRequestDto.setSwVersion(deviceModel.getSecureBiometricsModel().getSwVersion());
+           } else {
+               LocalDateTime dateTime = DateUtils.getUTCCurrentDateTime();
+               LocalDateTime dateTimeExp = dateTime.plusYears(2);
+               biometricsRequestDto.setSwBinaryHash("1");
+               biometricsRequestDto.setSwCreateDateTime(DateUtils.formatToISOString(dateTime));
+               biometricsRequestDto.setSwExpiryDateTime(DateUtils.formatToISOString(dateTimeExp));
+               biometricsRequestDto.setSwVersion("1.0.0");
+           }
 
-        biometricsRequestDto.setIsItForRegistrationDevice(partnerModel.getPartnerType().isItForRegistrationDevice().toString());
-        return createRequestWrapper(biometricsRequestDto);
+           biometricsRequestDto.setDeviceDetailId(addResponse);
+           biometricsRequestDto.setIsItForRegistrationDevice(partnerModel.getPartnerType().isItForRegistrationDevice().toString());
+           return createRequestWrapper(biometricsRequestDto);
+       }
     }
 
     private RequestWrapper<Object> activateSecureBioMetric(String secureBiometricsResponse, PartnerModel partnerModel) {
