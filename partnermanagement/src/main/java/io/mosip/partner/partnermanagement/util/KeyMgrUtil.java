@@ -77,7 +77,7 @@ public class KeyMgrUtil {
 	private String INTER_P12_FILE_NAME = "-inter.p12";
 	private String PARTNER_P12_FILE_NAME = "-partner.p12";
 
-    private char[] TEMP_P12_PWD = "mosip123".toCharArray();
+    private char[] TEMP_P12_PWD = "qwerty@123".toCharArray();
 
     private String KEY_ALIAS = "keyalias";
     private String KEY_STORE = "PKCS12";
@@ -320,16 +320,22 @@ public class KeyMgrUtil {
         }
         return false;
     }
-    
     public String getKeysDirPath() throws Exception {
+        return getKeysDirPath(false);
+    }
+
+    public String getKeysDirPath(Boolean forUpdate) throws Exception {
     	String domain = environment.getProperty(DOMAIN_URL, "localhost").replace("https://", "").replace("http://", "").replace("/", "");
 		String path = System.getProperty("java.io.tmpdir") + File.separator + "IDA-" + domain;
         Path parentPath = Paths.get(path);
-        if (parentPath != null && Files.exists(parentPath)) {
-            throw new Exception("Path : " + path + " already exist. Please take Backup");
-        } else {
-            Files.createDirectories(parentPath);
+        if(!forUpdate) {
+            if (parentPath != null && Files.exists(parentPath)) {
+                throw new Exception("Path : " + path + " already exist. Please take Backup");
+            } else {
+                Files.createDirectories(parentPath);
+            }
         }
+
         return path;
     }
 }

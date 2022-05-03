@@ -18,4 +18,9 @@ public interface PartnerCreationService {
     public ResponseModel activateSecureBioMetric(RequestWrapper<Object> activateSecureBiometricsRequest);
     public ResponseModel getCertificateFromKeyManager(MosipCertificateTypeConstant constant);
     public ResponseModel uploadCACertificatesIntoIDA(Object certificateModel);
+    public ResponseModel generateMISPLicenseKey(RequestWrapper<Object> mispRequestWrapper);
+    public ResponseModel partnerApiRequestForLTS(Object apiRequestWrapper, String partnerId);
+    public ResponseModel partnerPolicyMappingForLTS(Object policyMapRequestWrapper, String partnerId);
+    public ResponseModel approvePartnerPolicyMapRequest(Object apiApproveRequestWrapper, String policyMappingKey);
+    public Boolean updateSignedCertificateintoPartnerP12(String signedCertificate, String filePrepand, String partnerOrganization);
 }

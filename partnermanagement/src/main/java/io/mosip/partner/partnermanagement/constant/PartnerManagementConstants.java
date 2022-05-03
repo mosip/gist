@@ -10,8 +10,8 @@ public enum PartnerManagementConstants {
     KEYMANAGR_CA_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-003", "CA/SUBCA Certificate Upload Failed  in Key Manager"),
     PC_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-004", "Partner Certificate Upload Success"),
     PC_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-005", "API Key Generation"),
-    API_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-005", "API Key Generation Failed"),
-    API_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-004", "Partner Certificate Upload Failed"),
+    API_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-005", "API Key Generation Success"),
+    API_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-004", "API Key Generation Failed"),
     API_APPROVE_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-006", "API Key Approval Process Successful"),
     API_APPROVE_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-006", "API Key Approval Process Failed"),
     BIO_EXTRACT_ADD_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-007", "Bio Extract Addition Successful"),
@@ -29,7 +29,15 @@ public enum PartnerManagementConstants {
     CERTIFICATE_FETCH_SUCCESSFUL(LoggerFileConstant.SUCCESS, "PMD-SUC-012","Certificate Fetch Successful"),
     CERTIFICATE_FETCH_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-012","Certificate Fetch Failed"),
     IDA_CA_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-013", "CA/SUBCA Certificate Upload Success in IDA"),
-    IDA_CA_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-013", "CA/SUBCA Certificate Upload Failed  in IDA");
+    IDA_CA_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-013", "CA/SUBCA Certificate Upload Failed  in IDA"),
+    INVALID_API_DEVICE_FTM(LoggerFileConstant.FAIL, "PMD-FAL-014", "Invalid API. Please use Configure L0 or L1 Device API"),
+    MISP_LICENSE_GENERATION_SUCCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-015", "MISP License Key Generation Successful"),
+    MISP_LICENSE_GENERATION_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-015", "MISP License Key Generation Un-Successful"),
+    PARTNER_POLICY_MAP_SUUCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-016", "Partner Policy Mapping Completed Successfully"),
+    PARTNER_POLICY_MAP_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-016", "Partner Policy Mapping Failed"),
+    PARTNER_POLICY_MAP_APPROVAL_SUUCESS(LoggerFileConstant.SUCCESS, "PMD-SUC-017", "Partner Policy Mapping Approved Successfully"),
+    PARTNER_POLICY_MAP_APPROVAL_FAIL(LoggerFileConstant.FAIL, "PMD-FAL-017", "Partner Policy Mapping Approval Failed");
+
 
 
     public final LoggerFileConstant errorStatus;

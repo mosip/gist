@@ -19,7 +19,7 @@ public class PartnerModel {
     private String partnerAddress;
     private String partnerContactNumber;
     private String partnerOrganizationName;
-    @ApiModelProperty(name = "partnerType", value = "DEVICE, AUTH, CREDENTIAL")
+    @ApiModelProperty(name = "partnerType", value = "DEVICE, FTM, AUTH, CREDENTIAL")
     private PartnerTypes partnerType;
     private String policyGroup;
     private CertificateChainResponseDto certificateDetails;

@@ -20,6 +20,7 @@ import io.mosip.partner.partnermanagement.model.device.DeviceResponseDto;
 import io.mosip.partner.partnermanagement.model.http.RequestWrapper;
 import io.mosip.partner.partnermanagement.model.http.ResponseWrapper;
 import io.mosip.partner.partnermanagement.model.partner.PartnerResponse;
+import io.mosip.partner.partnermanagement.model.policy.PolicyMappingResponseData;
 import io.mosip.partner.partnermanagement.model.securebiometrics.SecureBiometricsResponseDto;
 import io.mosip.partner.partnermanagement.service.PartnerCreationService;
 import io.mosip.partner.partnermanagement.util.KeyMgrUtil;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
@@ -182,7 +184,7 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
             } else {
                 responseModel = new ResponseModel(PartnerManagementConstants.API_FAIL);
             }
-            responseModel.setResponseData(response.getResponse());
+            responseModel.setResponseData(response);
         } catch (Exception e) {
             responseModel = new ResponseModel(PartnerManagementConstants.API_FAIL);
             responseModel.setResponseData(e.getMessage());
@@ -190,6 +192,96 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         }
 
         return responseModel;
+    }
+
+    @Override
+    public ResponseModel partnerApiRequestForLTS(Object apiRequestData, String partnerId) {
+        ResponseWrapper<LinkedHashMap> response = null;
+        ResponseModel responseModel = null;
+        try {
+            String apiUrl = env.getProperty(ParameterConstant.PARTNER_API_REQUEST_FOR_LTS.toString());
+            apiUrl = apiUrl.replace("{partnerID}", partnerId);
+
+            logger.info("Calling Partner API Request");
+            response = (ResponseWrapper<LinkedHashMap>) callPatchApi(apiUrl, apiRequestData);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.API_SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.API_FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.API_FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public ResponseModel partnerPolicyMappingForLTS(Object policyMapRequestWrapper, String partnerId) {
+        ResponseWrapper<PolicyMappingResponseData> response = null;
+        ResponseModel responseModel = null;
+        try {
+            String apiUrl = env.getProperty(ParameterConstant.PARTNER_POLICY_MAPPING_REQUEST.toString());
+            apiUrl = apiUrl.replace("{partnerID}", partnerId);
+
+            logger.info("Calling Partner Policy Map Request");
+            response = (ResponseWrapper<PolicyMappingResponseData>) callPostApi(apiUrl, policyMapRequestWrapper);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_POLICY_MAP_SUUCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_POLICY_MAP_FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_POLICY_MAP_FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public ResponseModel approvePartnerPolicyMapRequest(Object apiApproveRequestWrapper, String policyMappingKey) {
+        ResponseWrapper<String> response = null;
+        ResponseModel responseModel = null;
+        try {
+            String apiUrl = env.getProperty(ParameterConstant.PARTNER_POLICY_MAPPING_APPROVAL.toString());
+            apiUrl = apiUrl.replace("{PolicyMappingId}", policyMappingKey);
+
+            logger.info("Calling Partner policy Map Approval Request");
+            response = (ResponseWrapper<String>) callPutApi(apiUrl, apiApproveRequestWrapper);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_POLICY_MAP_APPROVAL_SUUCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_POLICY_MAP_APPROVAL_FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.PARTNER_POLICY_MAP_APPROVAL_FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
+    @Override
+    public Boolean updateSignedCertificateintoPartnerP12(String signedCertificate, String filePrepand, String partnerOrganization) {
+        try {
+            X509Certificate x509Cert = (X509Certificate) keyMgrUtil.convertToCertificate(signedCertificate);
+            boolean isUpdated = keyMgrUtil.updatePartnerCertificate(filePrepand, x509Cert, keyMgrUtil.getKeysDirPath(true) + "/" + partnerOrganization);
+            return isUpdated;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
@@ -337,6 +429,30 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         return responseModel;
     }
 
+
+    @Override
+    public ResponseModel generateMISPLicenseKey(RequestWrapper<Object> mispRequestWrapper) {
+        ResponseWrapper<String> response = null;
+        ResponseModel responseModel = null;
+        try {
+            logger.info("Calling MISP License Key Generation");
+            response = (ResponseWrapper<String>) callPostApi(env.getProperty(ParameterConstant.GENERATE_MISP_LICENSE_KEY.toString().toString()), mispRequestWrapper);
+
+            if (response.getResponse() != null) {
+                responseModel = new ResponseModel(PartnerManagementConstants.MISP_LICENSE_GENERATION_SUCCESS);
+            } else {
+                responseModel = new ResponseModel(PartnerManagementConstants.MISP_LICENSE_GENERATION_FAIL);
+            }
+            responseModel.setResponseData(response);
+        } catch (Exception e) {
+            responseModel = new ResponseModel(PartnerManagementConstants.MISP_LICENSE_GENERATION_FAIL);
+            responseModel.setResponseData(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return responseModel;
+    }
+
     @Override
     public ResponseModel getCertificateFromKeyManager(MosipCertificateTypeConstant constant) {
             ResponseWrapper<KeyManagerCertificateResponseData> response = null;
@@ -379,6 +495,15 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         logger.info("Method  : POST");
         logger.info("Request :  \n" + formatObjectToJson(request));
         Object response =  restApiClient.postApi(url, MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
+        logger.info("Response : \n" + formatObjectToJson(response));
+        return response;
+    }
+
+    public Object callPutApi(String url, Object request) throws Exception {
+        logger.info("URL : " + url);
+        logger.info("Method  : PUT");
+        logger.info("Request :  \n" + formatObjectToJson(request));
+        Object response =  restApiClient.putApi(url, request, ResponseWrapper.class, MediaType.APPLICATION_JSON);
         logger.info("Response : \n" + formatObjectToJson(response));
         return response;
     }

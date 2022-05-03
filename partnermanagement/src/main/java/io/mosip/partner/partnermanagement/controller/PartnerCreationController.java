@@ -5,17 +5,22 @@ import io.mosip.partner.partnermanagement.model.*;
 import io.mosip.partner.partnermanagement.logger.PartnerManagementLogger;
 import io.mosip.partner.partnermanagement.model.apikey.ApiApproveRequestData;
 import io.mosip.partner.partnermanagement.model.apikey.ApiKeyRequestData;
+import io.mosip.partner.partnermanagement.model.apikey.ApiKeyRequestLTSData;
 import io.mosip.partner.partnermanagement.model.authmodel.LoginUser;
 import io.mosip.partner.partnermanagement.model.biometricextractors.ExtractorsRequestData;
 import io.mosip.partner.partnermanagement.model.certificate.*;
 import io.mosip.partner.partnermanagement.model.device.*;
 import io.mosip.partner.partnermanagement.model.http.RequestWrapper;
 import io.mosip.partner.partnermanagement.model.http.ResponseWrapper;
+import io.mosip.partner.partnermanagement.model.misp.MISPRequestModel;
+import io.mosip.partner.partnermanagement.model.misp.MISPResponseModel;
 import io.mosip.partner.partnermanagement.model.partner.PartnerRequest;
+import io.mosip.partner.partnermanagement.model.policy.PolicyMapApproveRequestData;
+import io.mosip.partner.partnermanagement.model.policy.PolicyMappingRequestData;
+import io.mosip.partner.partnermanagement.model.policy.PolicyMappingResponseData;
 import io.mosip.partner.partnermanagement.model.restapi.Metadata;
 import io.mosip.partner.partnermanagement.model.securebiometrics.SecureBiometricActivateRequestDto;
 import io.mosip.partner.partnermanagement.model.securebiometrics.SecureBiometricsRequestDto;
-import io.mosip.partner.partnermanagement.model.securebiometrics.SecureBiometricsResponseDto;
 import io.mosip.partner.partnermanagement.service.PartnerCreationService;
 import io.mosip.partner.partnermanagement.util.DateUtils;
 import io.mosip.partner.partnermanagement.util.RestApiClient;
@@ -27,10 +32,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.Part;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 @RestController
@@ -443,11 +445,11 @@ public class PartnerCreationController {
         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.OK);
     }
 
-    @PostMapping(value = "/createPartner", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseModel> createPartner(@RequestBody ResidentPartnerDetailModel partnerDetailModel) {
-        // Authentication with Auth Manager using User Id & Password
-        Boolean isSignedCertificateCreated = false;
-        String partnerSignedCertificate = null;
+    @PostMapping(value = "/configurePartner", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PartnerDetailResponseModel> createPartner(@RequestBody PartnerDetailModel partnerDetailModel) {
+        PartnerDetailResponseModel partnerDetailResponseModel = new PartnerDetailResponseModel();
+        partnerDetailResponseModel.setErrors(new ArrayList<>());
+
         logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
         LoginUser request = new LoginUser(env.getProperty(ParameterConstant.AUTHENTICATION_USERID.toString()),
                 env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
@@ -456,84 +458,197 @@ public class PartnerCreationController {
         RequestWrapper<Object> requestWrapper = createRequestWrapper(request);
         restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, requestWrapper);
 
-        // Creation of Partner from Self Partner Creation request
-        ResponseModel responseModel = createSelfPartner(partnerDetailModel.getPartnerModel());
-
-        if (responseModel.getStatus().equals(LoggerFileConstant.FAIL))
-            return new ResponseEntity<ResponseModel>(responseModel, HttpStatus.EXPECTATION_FAILED);
-
-        // Generating CA, SUB-CA, Partner Certificate
-        CertificateChainResponseDto certificateChainResponseDto = null;
-        ResponseModel certificateResponseModel  = null;
-        ResponseWrapper<LinkedHashMap> responseWrapper = (ResponseWrapper<LinkedHashMap>) responseModel.getResponseData();
-        LinkedHashMap partnerResponse = responseWrapper.getResponse();
-        String partnerId = partnerResponse.get("partnerId").toString();
-
-        if(partnerDetailModel.getPartnerModel().getCertificateDetails() != null) {
-            certificateChainResponseDto = partnerDetailModel.getPartnerModel().getCertificateDetails();
-            certificateResponseModel = new ResponseModel(PartnerManagementConstants.CERTIFICATE_GENERATED);
-            certificateResponseModel.setResponseData(certificateChainResponseDto);
-        } else {
-            String filePrepend = partnerDetailModel.getPartnerModel().getPartnerType().getFilePrepend();
-            certificateResponseModel  = partnerCreationService.generateCertificates(partnerId, filePrepend);
-
-            if (certificateResponseModel.getStatus().equals(LoggerFileConstant.FAIL))
-                return new ResponseEntity<ResponseModel>(certificateResponseModel, HttpStatus.EXPECTATION_FAILED);
-
-            certificateChainResponseDto = (CertificateChainResponseDto) certificateResponseModel.getResponseData();
+        if (partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.DEVICE) || partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.FTM)) {
+            ResponseModel responseModel = new ResponseModel(PartnerManagementConstants.INVALID_API_DEVICE_FTM);
+            partnerDetailResponseModel.getErrors().add(responseModel);
+            return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
         }
 
-        // Upload All Certificates
+            // Creation of Partner from Self Partner Creation request
+            ResponseModel responseModel = createSelfPartner(partnerDetailModel.getPartnerModel());
+
+            if (responseModel.getStatus().equals(LoggerFileConstant.FAIL)) {
+                partnerDetailResponseModel.getErrors().add(responseModel);
+                ResponseWrapper wrapper = (ResponseWrapper) responseModel.getResponseData();
+                if (!wrapper.canBeIgnored()) {
+                    return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
+                }
+            }
+
+        partnerDetailResponseModel.setPartnerId(partnerDetailModel.getPartnerModel().getPartnerId());
+
         List<MosipCertificateTypeConstant> baseCertificatesUpload = new ArrayList<>();
-        ResponseEntity<ResponseModel> responseEntity = uploadAllCertificates(partnerDetailModel.getPartnerModel(), certificateChainResponseDto, baseCertificatesUpload);
+        baseCertificatesUpload.add(MosipCertificateTypeConstant.ROOT);
+        baseCertificatesUpload.add(MosipCertificateTypeConstant.PMS);
 
-        if (responseEntity != null && !responseEntity.getStatusCode().equals(HttpStatus.OK))
-            return responseEntity;
+        // Upload All Certificates
+        ResponseEntity<ResponseModel> responseEntity = uploadAllCertificates(partnerDetailModel.getPartnerModel(), partnerDetailModel.getPartnerModel().getCertificateDetails(), baseCertificatesUpload);
 
-        ResponseModel partnerCertUploadResponse = responseEntity.getBody();
+        if (responseEntity != null && !responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+            partnerDetailResponseModel.getErrors().add(responseEntity);
+            ResponseWrapper wrapper = (ResponseWrapper) responseEntity.getBody().getResponseData();
 
-      /*  if (partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.DEVICE) || partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.FTM)) {
-            PartnerCertificateResponseData partnerCertificateResponseData = (PartnerCertificateResponseData) partnerCertUploadResponse.getResponseData();
-            isSignedCertificateCreated = true;
-            partnerSignedCertificate = partnerCertificateResponseData.getSignedCertificateData();
+            if (!wrapper.canBeIgnored()) {
+                return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
+            }
+        } else {
+            ResponseModel partnerCertUploadResponse = responseEntity.getBody();
+            ResponseWrapper wrapper = (ResponseWrapper) partnerCertUploadResponse.getResponseData();
+            LinkedHashMap<String, String> partnerCertificateResponseData = (LinkedHashMap<String, String>) wrapper.getResponse();
+            partnerDetailResponseModel.setSignedCertificate(partnerCertificateResponseData.get("signedCertificateData"));
+        }
+
+        if (partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.AUTH)) {
+            logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
+            LoginUser partnerLoginrequest = new LoginUser(partnerDetailModel.getPartnerModel().getPartnerId().toLowerCase(),
+                    env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
+                    env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()));
+
+            RequestWrapper<Object> partnerLoginrequestWrapper = createRequestWrapper(partnerLoginrequest);
+            restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, partnerLoginrequestWrapper);
+            System.setProperty("token", "");
+
+            //Maaping Policy With Partner
+            if(partnerDetailModel.getEnvironmentVersion().equals(APITypes.LTS)) {
+                PolicyMappingRequestData policyMapRequestData = new PolicyMappingRequestData();
+                policyMapRequestData.setPolicyName(partnerDetailModel.getPolicyName());
+                policyMapRequestData.setUseCaseDescription("API Key Generation\"");
+                RequestWrapper<Object> policyMapRequestWrapper = createRequestWrapper(policyMapRequestData);
+                ResponseModel policyMapResonseModel = partnerCreationService.partnerPolicyMappingForLTS(policyMapRequestWrapper, partnerDetailModel.getPartnerModel().getPartnerId());
+
+                if (policyMapResonseModel.getStatus().equals(LoggerFileConstant.FAIL)) {
+                    partnerDetailResponseModel.getErrors().add(policyMapResonseModel);
+                    ResponseWrapper wrapper = (ResponseWrapper) policyMapResonseModel.getResponseData();
+                    if (!wrapper.canBeIgnored()) {
+                        return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+                } else {
+                    ResponseWrapper wrapper = (ResponseWrapper) policyMapResonseModel.getResponseData();
+                    LinkedHashMap<String, String> policyMapResponseData = (LinkedHashMap) wrapper.getResponse();
+                    partnerDetailResponseModel.setPolicyMappingKey(policyMapResponseData.get("mappingkey"));
+                }
+
+                logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
+                LoginUser partnerAdminLoginrequest = new LoginUser(env.getProperty(ParameterConstant.AUTHENTICATION_USERID.toString()),
+                        env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
+                        env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()));
+
+                RequestWrapper<Object> partnerAdminLoginrequestWrapper = createRequestWrapper(partnerAdminLoginrequest);
+                restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, partnerAdminLoginrequestWrapper);
+                System.setProperty("token", "");
+
+/*                // Approve PolicyMap API
+                PolicyMapApproveRequestData approveRequestData = new PolicyMapApproveRequestData();
+                approveRequestData.setStatus("approved");
+                RequestWrapper<Object> apiApproveRequestWrapper = createRequestWrapper(approveRequestData);
+                ResponseModel approveResonseModel = partnerCreationService.approvePartnerPolicyMapRequest(apiApproveRequestWrapper, partnerDetailResponseModel.getPolicyMappingKey());
+
+                if (approveResonseModel.getStatus().equals(LoggerFileConstant.FAIL)) {
+                    partnerDetailResponseModel.getErrors().add(approveResonseModel);
+                    ResponseWrapper wrapper = (ResponseWrapper) approveResonseModel.getResponseData();
+                    if (!wrapper.canBeIgnored()) {
+                        return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+                }*/
+            }
+
+            logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
+            restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, partnerLoginrequestWrapper);
+            System.setProperty("token", "");
 
             // Submit PartnerAPI Key request Copy
-            ApiKeyRequestData apiRequestData = new ApiKeyRequestData();
-            apiRequestData.setPolicyName(partnerDetailModel.getPolicyName());
-            apiRequestData.setUseCaseDescription("");
-            RequestWrapper<Object> apiRequestWrapper = createRequestWrapper(apiRequestData);
-            ResponseModel apiResonseModel = partnerCreationService.partnerApiRequest(apiRequestWrapper, partnerId);
-
-            if (apiResonseModel.getStatus().equals(LoggerFileConstant.FAIL))
-                return new ResponseEntity<ResponseModel>(apiResonseModel, HttpStatus.EXPECTATION_FAILED);
-
-            // Add Bio Extractors for Partner
-            ExtractorsRequestData extractors;
-            if (partnerDetailModel.getExtractorList() != null && partnerDetailModel.getExtractorList().getExtractors() != null && !partnerDetailModel.getExtractorList().getExtractors().isEmpty()) {
-                extractors = partnerDetailModel.getExtractorList();
-            } else {
-                ExtractorsRequestData extractorsRequestData = new ExtractorsRequestData();
-                extractors = extractorsRequestData;
+            ResponseModel apiResonseModel = null;
+            if (partnerDetailModel.getEnvironmentVersion().equals(APITypes.NONLTS)) {
+                ApiKeyRequestData apiRequestData = new ApiKeyRequestData();
+                apiRequestData.setPolicyName(partnerDetailModel.getPolicyName());
+                apiRequestData.setUseCaseDescription("API Key Generation\"");
+                RequestWrapper<Object> apiRequestWrapper = createRequestWrapper(apiRequestData);
+                 apiResonseModel = partnerCreationService.partnerApiRequest(apiRequestWrapper, partnerDetailModel.getPartnerModel().getPartnerId());
+            } else if(partnerDetailModel.getEnvironmentVersion().equals(APITypes.LTS)) {
+                ApiKeyRequestLTSData apiRequestData = new ApiKeyRequestLTSData();
+                apiRequestData.setPolicyName(partnerDetailModel.getPolicyName());
+                apiRequestData.setLabel("API Key Generation");
+                RequestWrapper<Object> apiRequestWrapper = createRequestWrapper(apiRequestData);
+                apiResonseModel = partnerCreationService.partnerApiRequestForLTS(apiRequestWrapper, partnerDetailModel.getPartnerModel().getPartnerId());
             }
-            RequestWrapper<Object> extractRequestWrapper = createRequestWrapper(extractors);
-            ResponseModel extractResonseModel = partnerCreationService.addBioExtractos(extractRequestWrapper, partnerId, partnerDetailModel.getPolicyName());
 
-            if (apiResonseModel.getStatus().equals(LoggerFileConstant.FAIL))
-                return new ResponseEntity<ResponseModel>(extractResonseModel, HttpStatus.EXPECTATION_FAILED);
+            if (apiResonseModel.getStatus().equals(LoggerFileConstant.FAIL)) {
+                partnerDetailResponseModel.getErrors().add(apiResonseModel);
+                ResponseWrapper wrapper = (ResponseWrapper) apiResonseModel.getResponseData();
+                if (!wrapper.canBeIgnored()) {
+                    return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
+                }
+            } else {
+                ResponseWrapper wrapper = (ResponseWrapper) apiResonseModel.getResponseData();
+                LinkedHashMap<String, String> apiKeyResponseData = (LinkedHashMap) wrapper.getResponse();
+                partnerDetailResponseModel.setPartnerApiKey(apiKeyResponseData.get("apiKey"));
+            }
 
+            if (partnerDetailModel.getEnvironmentVersion().equals(APITypes.NONLTS)) {
 
-            // Approve PartnerAPI
-            LinkedHashMap<String, String> apiKeyResponseData = (LinkedHashMap) apiResonseModel.getResponseData();
-            ApiApproveRequestData approveRequestData = new ApiApproveRequestData();
-            approveRequestData.setStatus("Approved");
-            RequestWrapper<Object> apiApproveRequestWrapper = createRequestWrapper(approveRequestData);
-            ResponseModel approveResonseModel = partnerCreationService.approvePartnerApiRequest(apiApproveRequestWrapper, apiKeyResponseData.get("apiRequestId"));
+                logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
+                LoginUser partnerAdminLoginrequest = new LoginUser(env.getProperty(ParameterConstant.AUTHENTICATION_USERID.toString()),
+                        env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
+                        env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()));
 
-            if (approveResonseModel.getStatus().equals(LoggerFileConstant.FAIL))
-                return new ResponseEntity<ResponseModel>(approveResonseModel, HttpStatus.EXPECTATION_FAILED);
-        }*/
+                RequestWrapper<Object> partnerAdminLoginrequestWrapper = createRequestWrapper(partnerAdminLoginrequest);
+                restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, partnerAdminLoginrequestWrapper);
+                System.setProperty("token", "");
+                // Add Bio Extractors for Partner
+                ExtractorsRequestData extractors;
+                if (partnerDetailModel.getExtractorList() != null && partnerDetailModel.getExtractorList().getExtractors() != null && !partnerDetailModel.getExtractorList().getExtractors().isEmpty()) {
+                    extractors = partnerDetailModel.getExtractorList();
+                } else {
+                    ExtractorsRequestData extractorsRequestData = new ExtractorsRequestData();
+                    extractors = extractorsRequestData;
+                }
+                RequestWrapper<Object> extractRequestWrapper = createRequestWrapper(extractors);
+                ResponseModel extractResonseModel = partnerCreationService.addBioExtractos(extractRequestWrapper, partnerDetailModel.getPartnerModel().getPartnerId(), partnerDetailModel.getPolicyName());
 
-        return new ResponseEntity<ResponseModel>(certificateResponseModel, HttpStatus.OK);
+                if (extractResonseModel.getStatus().equals(LoggerFileConstant.FAIL)) {
+                    partnerDetailResponseModel.getErrors().add(extractResonseModel);
+                    ResponseWrapper wrapper = (ResponseWrapper) extractResonseModel.getResponseData();
+                    if (!wrapper.canBeIgnored()) {
+                        return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+                }
+
+                // Approve PartnerAPI
+                ApiApproveRequestData approveRequestData = new ApiApproveRequestData();
+                approveRequestData.setStatus("Approved");
+                RequestWrapper<Object> apiApproveRequestWrapper = createRequestWrapper(approveRequestData);
+                ResponseModel approveResonseModel = partnerCreationService.approvePartnerApiRequest(apiApproveRequestWrapper, partnerDetailResponseModel.getPartnerApiKey());
+
+                if (approveResonseModel.getStatus().equals(LoggerFileConstant.FAIL)) {
+                    partnerDetailResponseModel.getErrors().add(approveResonseModel);
+                    ResponseWrapper wrapper = (ResponseWrapper) approveResonseModel.getResponseData();
+                    if (!wrapper.canBeIgnored()) {
+                        return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
+                    }
+                }
+            }
+        }
+
+        if (partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.MISP)) {
+            // Generate MISP License Key
+            MISPRequestModel mispRequestModel = new MISPRequestModel();
+            mispRequestModel.setProviderId(partnerDetailResponseModel.getPartnerId());
+            RequestWrapper<Object> mispRequestWrapper = createRequestWrapper(mispRequestModel);
+            ResponseModel mispResonseModel = partnerCreationService.generateMISPLicenseKey(mispRequestWrapper);
+
+            if (mispResonseModel.getStatus().equals(LoggerFileConstant.FAIL)) {
+                partnerDetailResponseModel.getErrors().add(mispResonseModel);
+                ResponseWrapper wrapper = (ResponseWrapper) mispResonseModel.getResponseData();
+                if (!wrapper.canBeIgnored()) {
+                    return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
+                }
+            } else {
+                ResponseWrapper wrapper = (ResponseWrapper) mispResonseModel.getResponseData();
+                MISPResponseModel mispData = (MISPResponseModel) wrapper.getResponse();
+                partnerDetailResponseModel.setPartnerMISPLicenseKey(mispData.getLicenseKey());
+            }
+        }
+        return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.OK);
     }
 
     private RequestWrapper<Object> createRequestWrapper(Object request) {
@@ -610,6 +725,7 @@ public class PartnerCreationController {
             }
         }
 
+        Boolean isLocallyGeneratedp12 = false;
         if(certificateChainResponseDto == null) {
             String filePrepend = partnerModel.getPartnerType().getFilePrepend();
             ResponseModel certificateResponseModel  = partnerCreationService.generateCertificates(partnerModel.getPartnerId(), filePrepend);
@@ -618,6 +734,7 @@ public class PartnerCreationController {
                 return new ResponseEntity<ResponseModel>(certificateResponseModel, HttpStatus.EXPECTATION_FAILED);
 
             certificateChainResponseDto = (CertificateChainResponseDto) certificateResponseModel.getResponseData();
+            isLocallyGeneratedp12 = true;
         }
 
         // Upload CA Certificates
@@ -642,6 +759,16 @@ public class PartnerCreationController {
 
         // Upload Partner Certificate
         ResponseModel partnerCertUploadResponse = uploadPartnerCertificate(partnerModel, certificateChainResponseDto.getPartnerCertificate());
+
+        if (isLocallyGeneratedp12) {
+            ResponseWrapper wrapper = (ResponseWrapper) partnerCertUploadResponse.getResponseData();
+            LinkedHashMap<String, String> partnerCertificateResponseData = (LinkedHashMap<String, String>) wrapper.getResponse();
+            String signedCertificate = partnerCertificateResponseData.get("signedCertificateData");
+            if(!partnerCreationService.updateSignedCertificateintoPartnerP12(signedCertificate, partnerModel.getPartnerType().getFilePrepend(), partnerModel.getPartnerOrganizationName())) {
+                partnerCertUploadResponse.setStatus(LoggerFileConstant.FAIL);
+                partnerCertUploadResponse.setMessage("Update Signed Certificate with Partner P12 failed");
+            }
+        }
 
         if (partnerCertUploadResponse.getStatus().equals(LoggerFileConstant.FAIL))
             return new ResponseEntity<ResponseModel>(partnerCertUploadResponse, HttpStatus.EXPECTATION_FAILED);
