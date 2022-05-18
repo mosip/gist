@@ -14,6 +14,7 @@ import io.mosip.print.listener.constant.LoggerFileConstant;
 import io.mosip.print.listener.constant.PrintTransactionStatus;
 import io.mosip.print.listener.dto.MQResponseDto;
 import io.mosip.print.listener.dto.PrintStatusRequestDto;
+import io.mosip.print.listener.entity.PrintTracker;
 import io.mosip.print.listener.exception.PlatformErrorMessages;
 import io.mosip.print.listener.logger.PrintListenerLogger;
 import io.mosip.print.listener.model.EventModel;
@@ -55,6 +56,9 @@ public class ClientServiceImpl implements ClientService {
 
 	/** The print logger. */
 	Logger clientLogger = PrintListenerLogger.getLogger(ClientServiceImpl.class);
+
+	@Autowired
+	private PrintTrackerUtil printTrackerUtil;
 
 	@Override
 	public void generateCard(EventModel eventModel) {
@@ -106,6 +110,9 @@ public class ClientServiceImpl implements ClientService {
 							"'" + eventModel.getEvent().getId(),
 													PrintTransactionStatus.PRINTED.toString()};
 					CSVLogWriter.setLogMap(eventModel.getEvent().getPrintId(), args);
+					printTrackerUtil.writeIntoPrintTracker(new String[]{eventModel.getEvent().getPrintId(),
+							eventModel.getEvent().getId(),
+							PrintTransactionStatus.PRINTED.toString(), null, "RID Printed Successfully"});
 					activeMQListener.sendToQueue(mqResponse, 1);
 				} else {
 					System.out.println("Print Failed RID :  " + eventModel.getEvent().getId());
@@ -128,6 +135,9 @@ public class ClientServiceImpl implements ClientService {
 						"'" + eventModel.getEvent().getId(),
 						PrintTransactionStatus.SAVED_IN_LOCAL.toString()};
 				CSVLogWriter.setLogMap(eventModel.getEvent().getPrintId(), args);
+				printTrackerUtil.writeIntoPrintTracker(new String[]{eventModel.getEvent().getPrintId(),
+						eventModel.getEvent().getId(),
+						PrintTransactionStatus.SAVED_IN_LOCAL.toString(), null, "RID Saved in Local"});
 				activeMQListener.sendToQueue(mqResponse, 1);
 			}
 			CSVLogWriter.writePrintStatus();
@@ -150,6 +160,9 @@ public class ClientServiceImpl implements ClientService {
 						PrintTransactionStatus.ERROR.toString()};
 				CSVLogWriter.setLogMap(eventModel.getEvent().getPrintId(), args);
 				CSVLogWriter.writePrintStatus();
+				printTrackerUtil.writeIntoPrintTracker(new String[]{eventModel.getEvent().getPrintId(),
+						eventModel.getEvent().getId(),
+						PrintTransactionStatus.ERROR.toString(), null, e.getMessage()});
 
 				activeMQListener.sendToQueue(mqResponse, 1);
 			} catch (Exception ex) {

@@ -29,15 +29,15 @@ import io.mosip.print.listener.dto.MQResponseDto;
 import io.mosip.print.listener.dto.PrintMQDetails;
 import io.mosip.print.listener.controller.PrintListenerController;
 import io.mosip.print.listener.dto.PrintStatusRequestDto;
+import io.mosip.print.listener.entity.PrintTracker;
 import io.mosip.print.listener.exception.ExceptionUtils;
 import io.mosip.print.listener.model.Event;
 import io.mosip.print.listener.model.EventModel;
-import io.mosip.print.listener.util.CSVLogWriter;
-import io.mosip.print.listener.util.DateUtils;
-import io.mosip.print.listener.util.Helpers;
-import io.mosip.print.listener.util.LoggerFactory;
+import io.mosip.print.listener.util.*;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQMessageProducer;
+import org.apache.activemq.ActiveMQPrefetchPolicy;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.command.ActiveMQTextMessage;
 import org.bouncycastle.asn1.tsp.TimeStampReq;
@@ -128,6 +128,9 @@ public class ActiveMQListener {
 	@Autowired
 	public PrintListenerController printListenerController;
 
+	@Autowired
+	private PrintTrackerUtil printTrackerUtil;
+
 	public void consumeLogic(javax.jms.Message message, String abismiddlewareaddress) {
 		Integer textType = 0;
 		String messageData = null;
@@ -159,6 +162,9 @@ public class ActiveMQListener {
 					"'" + map.get("refId").toString(),
 					PrintTransactionStatus.SENT_FOR_PRINTING.toString()};
 			CSVLogWriter.setLogMap(map.get("printId").toString(), args);
+			printTrackerUtil.writeIntoPrintTracker(new String[]{map.get("printId").toString(),
+					map.get("refId").toString(),
+					PrintTransactionStatus.SENT_FOR_PRINTING.toString(), null, "RID Received for Printing"});
 			System.out.println("Message Received");
 
 			sendToQueue(mqResponse, 1);
@@ -267,6 +273,9 @@ public class ActiveMQListener {
 	public void setup() throws Exception {
 			if (connection == null || ((ActiveMQConnection) connection).isClosed()) {
 				connection = activeMQConnectionFactory.createConnection();
+				ActiveMQPrefetchPolicy policy = new ActiveMQPrefetchPolicy();
+				policy.setQueuePrefetch(1);
+				((ActiveMQConnection) connection).setPrefetchPolicy(policy);
 
 				if (session == null) {
 					connection.start();

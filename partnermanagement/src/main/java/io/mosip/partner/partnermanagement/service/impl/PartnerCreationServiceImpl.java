@@ -79,11 +79,11 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
     }
 
     @Override
-    public ResponseModel generateCertificates(String partnerId, String filePrepend) {
+    public ResponseModel generateCertificates(String partnerId, String partnerOrganization, String filePrepend) {
         CertificateChainResponseDto certificateChainResponseDto = null;
         ResponseModel responseModel;
         try {
-            certificateChainResponseDto = keyMgrUtil.getPartnerCertificates(filePrepend, keyMgrUtil.getKeysDirPath(), partnerId);
+            certificateChainResponseDto = keyMgrUtil.getPartnerCertificates(filePrepend, keyMgrUtil.getKeysDirPath(partnerOrganization), partnerId);
 
             responseModel = new ResponseModel(PartnerManagementConstants.CERTIFICATE_GENERATED);
             responseModel.setResponseData(certificateChainResponseDto);
@@ -276,7 +276,7 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
     public Boolean updateSignedCertificateintoPartnerP12(String signedCertificate, String filePrepand, String partnerOrganization) {
         try {
             X509Certificate x509Cert = (X509Certificate) keyMgrUtil.convertToCertificate(signedCertificate);
-            boolean isUpdated = keyMgrUtil.updatePartnerCertificate(filePrepand, x509Cert, keyMgrUtil.getKeysDirPath(true) + "/" + partnerOrganization);
+            boolean isUpdated = keyMgrUtil.updatePartnerCertificate(filePrepand, x509Cert, keyMgrUtil.getKeysDirPath(partnerOrganization, true));
             return isUpdated;
         } catch (Exception e) {
             e.printStackTrace();

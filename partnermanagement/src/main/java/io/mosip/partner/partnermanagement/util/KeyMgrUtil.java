@@ -103,7 +103,7 @@ public class KeyMgrUtil {
     public CertificateChainResponseDto getPartnerCertificates(String partnerType, String dirPath, String organization) throws 
         NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException, IOException, CertificateException, OperatorCreationException {
 
-        String caFilePath = dirPath + '/' + organization + '/' + partnerType + CA_P12_FILE_NAME;
+        String caFilePath = dirPath  + '/' + partnerType + CA_P12_FILE_NAME;
         LocalDateTime dateTime = LocalDateTime.now(); 
         LocalDateTime dateTimeExp = dateTime.plusYears(1);
         PrivateKeyEntry caPrivKeyEntry = getPrivateKeyEntry(caFilePath);
@@ -113,14 +113,14 @@ public class KeyMgrUtil {
         }
         String caCertificate = getCertificate(caPrivKeyEntry);
 
-        String interFilePath = dirPath + '/' + organization + '/'+ partnerType + INTER_P12_FILE_NAME;
+        String interFilePath = dirPath  + '/'+ partnerType + INTER_P12_FILE_NAME;
         PrivateKeyEntry interPrivKeyEntry = getPrivateKeyEntry(interFilePath);
         if (Objects.isNull(interPrivKeyEntry)) {
             interPrivKeyEntry = generateKeys(caPrivKeyEntry.getPrivateKey(), "CA-" + partnerType, "INTER-" + partnerType, interFilePath, keyUsage, dateTime, dateTimeExp, organization);
         }
         String interCertificate = getCertificate(interPrivKeyEntry);
 
-        String partnerFilePath = dirPath + '/' + organization + '/' + partnerType + PARTNER_P12_FILE_NAME;
+        String partnerFilePath = dirPath  + '/' + partnerType + PARTNER_P12_FILE_NAME;
         PrivateKeyEntry partnerPrivKeyEntry = getPrivateKeyEntry(partnerFilePath);
         if (Objects.isNull(partnerPrivKeyEntry)) {
             if (partnerType.equalsIgnoreCase("EKYC")){
@@ -320,13 +320,13 @@ public class KeyMgrUtil {
         }
         return false;
     }
-    public String getKeysDirPath() throws Exception {
-        return getKeysDirPath(false);
+    public String getKeysDirPath(String additionalPath) throws Exception {
+        return getKeysDirPath(additionalPath, false);
     }
 
-    public String getKeysDirPath(Boolean forUpdate) throws Exception {
+    public String getKeysDirPath(String additionalPath, Boolean forUpdate) throws Exception {
     	String domain = environment.getProperty(DOMAIN_URL, "localhost").replace("https://", "").replace("http://", "").replace("/", "");
-		String path = System.getProperty("java.io.tmpdir") + File.separator + "IDA-" + domain;
+		String path = System.getProperty("java.io.tmpdir") + File.separator + "IDA-" + domain + (additionalPath != null ? '/' + additionalPath : "");
         Path parentPath = Paths.get(path);
         if(!forUpdate) {
             if (parentPath != null && Files.exists(parentPath)) {

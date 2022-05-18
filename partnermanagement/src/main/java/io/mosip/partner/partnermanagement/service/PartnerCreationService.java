@@ -6,7 +6,7 @@ import io.mosip.partner.partnermanagement.model.http.RequestWrapper;
 
 public interface PartnerCreationService {
     public ResponseModel createPartner(Object partnerModel);
-    public ResponseModel generateCertificates(String partnerId, String filePrepend);
+    public ResponseModel generateCertificates(String partnerId, String partnerOrganization, String filePrepend);
     public ResponseModel uploadCACertificatesIntoKeyManager(Object certificateModel);
     public ResponseModel uploadPartnerCertificates(Object partnerCertificateRequest);
     public ResponseModel partnerApiRequest(Object apiRequestData, String partnerId);

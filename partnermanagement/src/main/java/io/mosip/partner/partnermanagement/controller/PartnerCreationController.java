@@ -158,26 +158,28 @@ public class PartnerCreationController {
                         ResponseWrapper wrapper = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
                         if(!wrapper.canBeIgnored())
                         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
-                    }
+                    } else {
+                        ResponseWrapper secureBiometricsResponseDto  = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
+                        LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
+                        deviceL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
 
-                    ResponseWrapper secureBiometricsResponseDto  = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
-                    LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
-                    deviceL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
+                        // Activate Secure Biometric Interface
+                        RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getDeviceProvider());
+                        ResponseModel activateSecureBiometricsResponse =   partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
 
-                    // Activate Secure Biometric Interface
-                    RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getDeviceProvider());
-                    ResponseModel activateSecureBiometricsResponse =   partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
-
-                    if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                        deviceL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
-                        deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
-                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                        if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                            deviceL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
+                            deviceConfigurationResponseModel.getResponse().add(deviceL1ResponseModel);
+                            return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                        }
                     }
                 }
             }
 
             // Upload All Certificates
             List<MosipCertificateTypeConstant> baseCertificatesUploadForIDA = new ArrayList<>();
+            baseCertificatesUploadForIDA.add(MosipCertificateTypeConstant.ROOT);
+            baseCertificatesUploadForIDA.add(MosipCertificateTypeConstant.PMS);
             ResponseEntity<ResponseModel> idaResponseEntity = uploadAllCertificatesIntoIDA(deviceL1Model.getDeviceProvider(), deviceL1Model.getDeviceProvider().getCertificateDetails(), baseCertificatesUploadForIDA);
 
             if (idaResponseEntity != null && !idaResponseEntity.getStatusCode().equals(HttpStatus.OK)) {
@@ -288,25 +290,27 @@ public class PartnerCreationController {
                         ResponseWrapper wrapper = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
                         if(!wrapper.canBeIgnored())
                         return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
-                    }
+                    } else {
+                        ResponseWrapper secureBiometricsResponseDto = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
+                        LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
+                        ftmL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
 
-                    ResponseWrapper secureBiometricsResponseDto = (ResponseWrapper) secureBiometricsAddResponse.getResponseData();
-                    LinkedHashMap<String, String> secureBiometricsResponse = (LinkedHashMap<String, String>) secureBiometricsResponseDto.getResponse();
-                    ftmL1ResponseModel.setSecureBiometricId(secureBiometricsResponse.get("id"));
+                        // Activate Secure Biometric Interface
+                        RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getFtmProvider());
+                        ResponseModel activateSecureBiometricsResponse = partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
 
-                    // Activate Secure Biometric Interface
-                    RequestWrapper<Object> activateSecureBiometricsRequest = activateSecureBioMetric(secureBiometricsResponse.get("id"), deviceL1Model.getFtmProvider());
-                    ResponseModel activateSecureBiometricsResponse = partnerCreationService.activateSecureBioMetric(activateSecureBiometricsRequest);
-
-                    if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
-                        ftmL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
-                        deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
-                        return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                        if (activateSecureBiometricsResponse.getStatus().equals(LoggerFileConstant.FAIL)) {
+                            ftmL1ResponseModel.getErrors().add(activateSecureBiometricsResponse);
+                            deviceConfigurationResponseModel.getResponse().add(ftmL1ResponseModel);
+                            return new ResponseEntity<DeviceConfigurationResponseModel>(deviceConfigurationResponseModel, HttpStatus.EXPECTATION_FAILED);
+                        }
                     }
                 }
             }
             // Upload All Certificates
             List<MosipCertificateTypeConstant> baseCertificatesUploadForIDA = new ArrayList<>();
+            baseCertificatesUploadForIDA.add(MosipCertificateTypeConstant.ROOT);
+            baseCertificatesUploadForIDA.add(MosipCertificateTypeConstant.PMS);
 
             ResponseEntity<ResponseModel> idaFtmResponseEntity = uploadAllCertificatesIntoIDA(deviceL1Model.getFtmProvider(), deviceL1Model.getFtmProvider().getCertificateDetails(), baseCertificatesUploadForIDA);
 
@@ -640,7 +644,7 @@ public class PartnerCreationController {
             }
         }
 
-        if (partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.MISP)) {
+        if (partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.MISP) || partnerDetailModel.getEnvironmentVersion().equals(APITypes.NONLTS)) {
             // Generate MISP License Key
             MISPRequestModel mispRequestModel = new MISPRequestModel();
             mispRequestModel.setProviderId(partnerDetailResponseModel.getPartnerId());
@@ -739,12 +743,13 @@ public class PartnerCreationController {
         Boolean isLocallyGeneratedp12 = false;
         if(certificateChainResponseDto == null) {
             String filePrepend = partnerModel.getPartnerType().getFilePrepend();
-            ResponseModel certificateResponseModel  = partnerCreationService.generateCertificates(partnerModel.getPartnerId(), filePrepend);
+            ResponseModel certificateResponseModel  = partnerCreationService.generateCertificates(partnerModel.getPartnerId(), partnerModel.getPartnerOrganizationName(), filePrepend);
 
             if (certificateResponseModel.getStatus().equals(LoggerFileConstant.FAIL))
                 return new ResponseEntity<ResponseModel>(certificateResponseModel, HttpStatus.EXPECTATION_FAILED);
 
             certificateChainResponseDto = (CertificateChainResponseDto) certificateResponseModel.getResponseData();
+            partnerModel.setCertificateDetails(certificateChainResponseDto);
             isLocallyGeneratedp12 = true;
         }
 

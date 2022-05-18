@@ -5,7 +5,8 @@ public enum PartnerTypes {
     DEVICE("device", "Device_Provider", "DEVICE", true),
     FTM("ftm", "FTM_Provider", "FTM", false),
     AUTH("auth", "Auth_Partner", "AUTH", false),
-    MISP("misp","MISP_Partner", "AUTH", false);
+    MISP("misp","MISP_Partner", "AUTH", false),
+    CREDENTIAL("credential","Credential_Partner", "AUTH", false);
 
 /*    AUTH("auth", "Auth Partner"),
     CREDENTIAL("credential", "Credential Partner"),
