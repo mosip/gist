@@ -2,6 +2,7 @@ package io.mosip.print.listener.logger;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.listener.constant.LogMessageTypeConstant;
+import io.mosip.print.listener.util.ApplicationResourceContext;
 import io.mosip.print.listener.util.LoggerFactory;
 
 import java.util.ArrayList;
@@ -31,7 +32,8 @@ public final class PrintListenerLogger {
 	}
 
 	public static void println(LogMessageTypeConstant type, String message) {
-		LogMessage logMessage = new LogMessage(type, (new Date()) + " : " + type.toString() + " : " + message);
+		LogMessage logMessage = new LogMessage(type, (new Date()) + " : " +
+				ApplicationResourceContext.getInstance().getLabelBundle().getString(type.toString()) + " : " + message);
 		logMessageList.add(logMessage);
 	}
 }

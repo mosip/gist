@@ -102,12 +102,13 @@ public class PrinterUtil {
             String printerName = env.getProperty("partner.printer.name");
 
             if(printerName == null || printerName.isEmpty()) {
-                 throw  new Exception(PlatformErrorMessages.PRT_NOT_CONFIG.getMessage());
+                 throw  new Exception(ApplicationResourceContext.getInstance().getLabelBundle().getString(PlatformErrorMessages.PRT_NOT_CONFIG.getCode()));
             }
 
             for (PrintService printService : printServices) {
                 if (printService.getName().equals(printerName)) {
-                    PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Printer Name " + printerName);
+                    PrintListenerLogger.println(LogMessageTypeConstant.INFO,
+                            String.format(ApplicationResourceContext.getInstance().getLabelBundle().getString("message.printer.name"), printerName));
                     printer = printService;
                     break;
                 }
@@ -119,13 +120,13 @@ public class PrinterUtil {
             if (info.getWorkOffline().toLowerCase().equals("false")) {
                         return printer;
             } else {
-                        throw  new Exception(PlatformErrorMessages.PRT_OFFLINE.getMessage());
+                        throw  new Exception(ApplicationResourceContext.getInstance().getLabelBundle().getString(PlatformErrorMessages.PRT_OFFLINE.getCode()));
             }
         } else {
-                    throw  new Exception(PlatformErrorMessages.PRT_NOT_FOUND.getMessage());
+                    throw  new Exception(ApplicationResourceContext.getInstance().getLabelBundle().getString(PlatformErrorMessages.PRT_NOT_FOUND.getCode()));
                 }
             } else {
-                throw  new Exception(PlatformErrorMessages.PRT_NOT_FOUND.getMessage());
+                throw  new Exception(ApplicationResourceContext.getInstance().getLabelBundle().getString(PlatformErrorMessages.PRT_NOT_FOUND.getCode()));
         }
         } catch (Exception e) {
             clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "PrinterUtil","ERROR : " + e.getMessage());

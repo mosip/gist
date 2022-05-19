@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 
 import javax.jms.BytesMessage;
@@ -133,11 +134,14 @@ public class ActiveMQListener {
 	@Autowired
 	private PrintTrackerUtil printTrackerUtil;
 
+
 	public void consumeLogic(javax.jms.Message message, String abismiddlewareaddress) {
 		Integer textType = 0;
 		String messageData = null;
 		logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ",
 				"Received message " + message);
+		ResourceBundle labelResourceBundle = ApplicationResourceContext.getInstance().getLabelBundle();
+
 		try {
 			if (message instanceof TextMessage || message instanceof ActiveMQTextMessage) {
 				textType = 1;
@@ -170,7 +174,7 @@ public class ActiveMQListener {
 			MQResponseDto mqResponseDto = new MQResponseDto("mosip.print.pdf.response", printStatusRequestDto);
 			ResponseEntity<Object> mqResponse = new ResponseEntity<Object>(mqResponseDto, HttpStatus.OK);
 
-			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Message Received");
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, labelResourceBundle.getString("activemq.message.received"));
 
 			sendToQueue(mqResponse, 1);
 
@@ -291,6 +295,7 @@ public class ActiveMQListener {
 
 	public void runQueue() {
 		try {
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, ApplicationResourceContext.getInstance().getLabelBundle().getString("message.activemq.connecting"));
 			List<PrintMQDetails> printQueueDetails = getQueueDetails();
 			if (printQueueDetails != null && printQueueDetails.size() > 0) {
 
@@ -339,6 +344,7 @@ public class ActiveMQListener {
 		MessageConsumer consumer;
 			destination = session.createQueue(address);
 			consumer = session.createConsumer(destination);
+			PrintListenerLogger.println(LogMessageTypeConstant.SUCCESS, ApplicationResourceContext.getInstance().getLabelBundle().getString("message.activemq.connected"));
 			consumer.setMessageListener(getListener(queueName, object));
 
 		return null;

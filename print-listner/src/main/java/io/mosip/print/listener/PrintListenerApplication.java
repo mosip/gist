@@ -5,8 +5,10 @@ import io.mosip.print.listener.controller.base.FXComponents;
 import io.mosip.print.listener.util.ApplicationResourceContext;
 import io.mosip.print.listener.util.PrinterUtil;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -18,11 +20,6 @@ import java.util.Timer;
 
 @SpringBootApplication (exclude = {SecurityAutoConfiguration.class})
 public class PrintListenerApplication extends Application {
-
-    @Bean
-    public ThreadPoolTaskScheduler getTaskScheduler() {
-        return new ThreadPoolTaskScheduler();
-    }
 
     private ConfigurableApplicationContext context;
     FXMLLoader loader = new FXMLLoader();
@@ -37,9 +34,15 @@ public class PrintListenerApplication extends Application {
     public void start(Stage primaryStage) throws Exception {
         ApplicationResourceContext.getInstance();
         HomeController controller = ApplicationResourceContext.getInstance().getApplicationContext().getBean(HomeController.class);
+        primaryStage.setOnShown(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                ApplicationResourceContext.getInstance().getApplicationContext().getBean(PrinterUtil.class).isPrintArchievePathExist();
+                ApplicationResourceContext.getInstance().getApplicationContext().getBean(PrinterUtil.class).printerHealthCheck();
+            }
+        });
+
         controller.showUserNameScreen(primaryStage);
-        ApplicationResourceContext.getInstance().getApplicationContext().getBean(PrinterUtil.class).isPrintArchievePathExist();
-        ApplicationResourceContext.getInstance().getApplicationContext().getBean(PrinterUtil.class).printerHealthCheck();
     }
 
     @Override
@@ -49,16 +52,6 @@ public class PrintListenerApplication extends Application {
         ApplicationResourceContext.getInstance().setApplicationLanguage(context.getEnvironment().getProperty("mosip.primary-language"));
         ApplicationResourceContext.getInstance().setApplicationSupportedLanguage(context.getEnvironment().getProperty("mosip.supported-languages"));
         ApplicationResourceContext.getInstance().setApplicationContext(context);
-
-//        loader.setControllerFactory(context::getBean);
-
-//        loader.setResources(ApplicationResourceContext.getInstance().getLabelBundle());
-//        root = loader.load(this.getClass().getClassLoader().getResourceAsStream("fxml/HomePage.fxml"));
-//        context.close();
-
-  //      ConfigurableApplicationContext configurableApplicationContext = SpringApplication.run(PrintListenerApplication.class, args);
-   //     configurableApplicationContext.getBean(PrinterUtil.class).isPrintArchievePathExist();
-   //     configurableApplicationContext.getBean(PrinterUtil.class).printerHealthCheck();
     }
 
     @Override

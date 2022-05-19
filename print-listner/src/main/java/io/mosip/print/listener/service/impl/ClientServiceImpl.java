@@ -59,24 +59,27 @@ public class ClientServiceImpl implements ClientService {
 	@Autowired
 	private PrintTrackerUtil printTrackerUtil;
 
+
 	@Override
 	public void generateCard(EventModel eventModel) {
 
 		try {
-			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Processing Message RID :  " + eventModel.getEvent().getId());
+			ResourceBundle labelResourceBundle = ApplicationResourceContext.getInstance().getLabelBundle();
+
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, labelResourceBundle.getString("message.rid.processing") + " : " + eventModel.getEvent().getId());
 			String dataShareUrl = eventModel.getEvent().getDataShareUri();
 			dataShareUrl = dataShareUrl.replace("http://", "https://");
 			URI dataShareUri = URI.create(dataShareUrl);
 			String credentials = restApiClient.getApi(dataShareUri, String.class);
-			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Data Decryption Started RID :  " + eventModel.getEvent().getId());
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, labelResourceBundle.getString("message.rid.decrypt.started") + " : " + eventModel.getEvent().getId());
 			String decryptedData = cryptoCoreUtil.decrypt(credentials);
 
-			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Data Decryption Completed RID :  " + eventModel.getEvent().getId());
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, labelResourceBundle.getString("message.rid.decrypt.completed") + " : " + eventModel.getEvent().getId());
 			String filePath = env.getProperty("partner.pdf.download.path");
 			if(!printerUtil.isPrintArchievePathExist()) {
 				InetAddress address = InetAddress.getLocalHost();
 
-				PrintListenerLogger.println(LogMessageTypeConstant.ERROR, "PDF Archieve Path not exist. Path : " + filePath + ", RID : " + eventModel.getEvent().getId());
+				PrintListenerLogger.println(LogMessageTypeConstant.ERROR, labelResourceBundle.getString("message.path.not.found") + " : " + filePath + ", RID : " + eventModel.getEvent().getId());
 
 				clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
@@ -93,12 +96,12 @@ public class ClientServiceImpl implements ClientService {
 			os.close();
 
 			boolean printRequired  = env.getProperty("mosip.print.pdf.printing.required", boolean.class);
-			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Print Required :  " + printRequired);
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, labelResourceBundle.getString("message.print.required") + " : " + printRequired);
 			if(printRequired) {
-				PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Print Started RID :  " + eventModel.getEvent().getId());
+				PrintListenerLogger.println(LogMessageTypeConstant.INFO, labelResourceBundle.getString("message.print.started")  + " : " + eventModel.getEvent().getId());
 
 				if (printerUtil.initiatePrint(pdfFile.getName())) {
-					PrintListenerLogger.println(LogMessageTypeConstant.SUCCESS, "Print Completed Successfully RID :  " + eventModel.getEvent().getId());
+					PrintListenerLogger.println(LogMessageTypeConstant.SUCCESS, labelResourceBundle.getString("message.print.completed") + " : " + eventModel.getEvent().getId());
 
 					PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
 					printStatusRequestDto.setPrintStatus(PrintTransactionStatus.PRINTED);
@@ -116,7 +119,7 @@ public class ClientServiceImpl implements ClientService {
 							PrintTransactionStatus.PRINTED.toString(), null, "RID Printed Successfully"});
 					activeMQListener.sendToQueue(mqResponse, 1);
 				} else {
-					PrintListenerLogger.println(LogMessageTypeConstant.ERROR, "Print Failed RID :  " + eventModel.getEvent().getId());
+					PrintListenerLogger.println(LogMessageTypeConstant.ERROR, labelResourceBundle.getString("message.print.failed") + " : " + eventModel.getEvent().getId());
 
 					clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
@@ -124,7 +127,7 @@ public class ClientServiceImpl implements ClientService {
 					throw new Exception(PlatformErrorMessages.PRT_FAILED.getMessage());
 				}
 			} else {
-				PrintListenerLogger.println(LogMessageTypeConstant.SUCCESS, "Print Saved Locally Successfully RID :  " + eventModel.getEvent().getId());
+				PrintListenerLogger.println(LogMessageTypeConstant.SUCCESS, labelResourceBundle.getString("message.print.locally.saved") + " : " + eventModel.getEvent().getId());
 
 				PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
 				printStatusRequestDto.setPrintStatus(PrintTransactionStatus.SAVED_IN_LOCAL);

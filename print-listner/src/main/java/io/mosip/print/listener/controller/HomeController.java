@@ -3,6 +3,8 @@ package io.mosip.print.listener.controller;
 import io.mosip.print.listener.constant.RegistrationConstants;
 import io.mosip.print.listener.controller.base.BaseController;
 import io.mosip.print.listener.controller.base.FXComponents;
+import io.mosip.print.listener.util.ApplicationResourceContext;
+import io.mosip.print.listener.util.PrinterUtil;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -39,8 +41,6 @@ public class HomeController extends BaseController implements Initializable {
         loginRoot = BaseController.load(getClass().getResource(RegistrationConstants.MAIN_PAGE));
 
         scene = getScene(loginRoot);
-
-        //forgotUsrnme.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.FORGOT_USERNAME_URL));
 
   //      Screen screen = Screen.getPrimary();
    //     Rectangle2D bounds = screen.getVisualBounds();

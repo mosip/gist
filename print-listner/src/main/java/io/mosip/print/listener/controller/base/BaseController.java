@@ -1,6 +1,7 @@
 package io.mosip.print.listener.controller.base;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.print.listener.constant.RegistrationConstants;
 import io.mosip.print.listener.controller.PrintListenerController;
 import io.mosip.print.listener.logger.PrintListenerLogger;
 import io.mosip.print.listener.util.ApplicationResourceContext;
@@ -27,8 +28,6 @@ public class BaseController {
 
     protected Scene scene;
 
-    @Value("${mosip.registration.css_file_path:}")
-    private String cssName;
     /**
      * Loading FXML files along with beans.
      *
@@ -62,6 +61,6 @@ public class BaseController {
     }
 
     protected String getCssName() {
-        return cssName;
+        return RegistrationConstants.CSS_PATH;
     }
 }

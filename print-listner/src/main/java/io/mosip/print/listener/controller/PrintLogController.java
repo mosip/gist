@@ -67,7 +67,8 @@ public class PrintLogController extends BaseController implements Initializable 
                     Text text = new Text();
                     text.setFill(message.getMessageType().getColor());
                     text.setText(message.getMessage() + "\r\n");
-                    text.setFont(Font.font(" Times New Roman", FontPosture.REGULAR, 12));
+                  //  text.setFont(Font.font(" Times New Roman", FontPosture.REGULAR, 12));
+                    text.setFont(Font.font(12));
                     logTextFlow.getChildren().add(text);
                 }
                 PrintListenerLogger.logMessageList.removeAll(messageList);
