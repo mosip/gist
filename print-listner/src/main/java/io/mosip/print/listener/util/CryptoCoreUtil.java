@@ -21,6 +21,7 @@ import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.MGF1ParameterSpec;
 import java.util.Arrays;
+import java.util.ResourceBundle;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -57,8 +58,7 @@ public class CryptoCoreUtil {
 	@Value("${mosip.print.prependThumbprint:false}")
 	private boolean isThumbprint;
 
-	@Autowired
-	private ApplicationContext applicationContext;
+	private ResourceBundle partnerResourceBundle = ApplicationResourceContext.getInstance().getPartnerResourceBundle();
 
 	public String decrypt(String data) throws Exception {
 		PrivateKeyEntry privateKeyEntry = loadP12();
@@ -71,10 +71,10 @@ public class CryptoCoreUtil {
 	public PrivateKeyEntry loadP12() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
 			IOException, UnrecoverableEntryException {
 		KeyStore mosipKeyStore = KeyStore.getInstance("PKCS12");
-		InputStream in = getClass().getClassLoader().getResourceAsStream(applicationContext.getPartnerResourCeBundle().getString("partner.private.key.filename"));
-		mosipKeyStore.load(in, applicationContext.getPartnerResourCeBundle().getString("partner.private.key.password").toCharArray());
-		ProtectionParameter password = new PasswordProtection(applicationContext.getPartnerResourCeBundle().getString("partner.private.key.password").toCharArray());
-		PrivateKeyEntry privateKeyEntry = (PrivateKeyEntry) mosipKeyStore.getEntry(applicationContext.getPartnerResourCeBundle().getString("partner.private.key.alias"), password);
+		InputStream in = getClass().getClassLoader().getResourceAsStream(partnerResourceBundle.getString("partner.private.key.filename"));
+		mosipKeyStore.load(in, partnerResourceBundle.getString("partner.private.key.password").toCharArray());
+		ProtectionParameter password = new PasswordProtection(partnerResourceBundle.getString("partner.private.key.password").toCharArray());
+		PrivateKeyEntry privateKeyEntry = (PrivateKeyEntry) mosipKeyStore.getEntry(partnerResourceBundle.getString("partner.private.key.alias"), password);
 		return privateKeyEntry;
 	}
 
@@ -148,7 +148,7 @@ public class CryptoCoreUtil {
 	/**
 	 *
 	 * @param paddedPlainText
-	 * @param privateKey
+	 * @param
 	 * @return
 	 * @throws InvalidCipherTextException
 	 * @throws InvalidKeyException

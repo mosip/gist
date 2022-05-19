@@ -23,6 +23,7 @@ import javax.jms.TextMessage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.print.listener.constant.LogMessageTypeConstant;
 import io.mosip.print.listener.constant.LoggerFileConstant;
 import io.mosip.print.listener.constant.PrintTransactionStatus;
 import io.mosip.print.listener.dto.MQResponseDto;
@@ -31,6 +32,7 @@ import io.mosip.print.listener.controller.PrintListenerController;
 import io.mosip.print.listener.dto.PrintStatusRequestDto;
 import io.mosip.print.listener.entity.PrintTracker;
 import io.mosip.print.listener.exception.ExceptionUtils;
+import io.mosip.print.listener.logger.PrintListenerLogger;
 import io.mosip.print.listener.model.Event;
 import io.mosip.print.listener.model.EventModel;
 import io.mosip.print.listener.util.*;
@@ -151,6 +153,16 @@ public class ActiveMQListener {
 			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","Message Data " + messageData);
 			Map map = new Gson().fromJson(messageData, Map.class);
 
+
+			printTrackerUtil.writeIntoPrintTracker(new String[]{map.get("printId").toString(),
+					map.get("refId").toString(),
+					PrintTransactionStatus.SENT_FOR_PRINTING.toString(), null, "RID Received for Printing"});
+
+			String[] args = new String[]{map.get("printId").toString(),
+					"'" + map.get("refId").toString(),
+					PrintTransactionStatus.SENT_FOR_PRINTING.toString()};
+			CSVLogWriter.setLogMap(map.get("printId").toString(), args);
+
 			PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
 			printStatusRequestDto.setPrintStatus(PrintTransactionStatus.SENT_FOR_PRINTING);
 			printStatusRequestDto.setProcessedTime(DateUtils.getUTCCurrentDateTimeString());
@@ -158,14 +170,7 @@ public class ActiveMQListener {
 			MQResponseDto mqResponseDto = new MQResponseDto("mosip.print.pdf.response", printStatusRequestDto);
 			ResponseEntity<Object> mqResponse = new ResponseEntity<Object>(mqResponseDto, HttpStatus.OK);
 
-			String[] args = new String[]{map.get("printId").toString(),
-					"'" + map.get("refId").toString(),
-					PrintTransactionStatus.SENT_FOR_PRINTING.toString()};
-			CSVLogWriter.setLogMap(map.get("printId").toString(), args);
-			printTrackerUtil.writeIntoPrintTracker(new String[]{map.get("printId").toString(),
-					map.get("refId").toString(),
-					PrintTransactionStatus.SENT_FOR_PRINTING.toString(), null, "RID Received for Printing"});
-			System.out.println("Message Received");
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Message Received");
 
 			sendToQueue(mqResponse, 1);
 
@@ -194,7 +199,7 @@ public class ActiveMQListener {
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
+			PrintListenerLogger.println(LogMessageTypeConstant.ERROR, e.getMessage());
 		}
 	}
 
@@ -310,12 +315,12 @@ public class ActiveMQListener {
 		} catch (IOException e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
-			System.exit(1);
+			PrintListenerLogger.println(LogMessageTypeConstant.ERROR, e.getMessage());
+			//System.exit(1);
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
+			PrintListenerLogger.println(LogMessageTypeConstant.ERROR, e.getMessage());
 		}
 
 	}
@@ -401,12 +406,12 @@ public class ActiveMQListener {
 		} catch (IOException e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
-			System.exit(1);
+			PrintListenerLogger.println(LogMessageTypeConstant.ERROR, e.getMessage());
+			//System.exit(1);
 		} catch (Exception e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR : " + e.getMessage());
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ACTIVEMQ","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-			System.out.println("ERROR :" + e.getMessage());
+			PrintListenerLogger.println(LogMessageTypeConstant.ERROR, e.getMessage());
 		}
 	}
 }

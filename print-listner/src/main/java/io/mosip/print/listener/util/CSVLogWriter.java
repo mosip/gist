@@ -39,7 +39,7 @@ public class CSVLogWriter {
             }
         } catch(Exception e) {
             clientLogger.error("Print Listener", "CSVWritter", e.getMessage(), e.toString());
-            System.exit(1);
+            //System.exit(1);
         }
     }
 

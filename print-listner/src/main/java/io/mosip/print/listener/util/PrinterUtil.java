@@ -4,7 +4,9 @@ import com.profesorfalken.wmi4java.WMI4Java;
 import com.profesorfalken.wmi4java.WMIClass;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.listener.activemq.ActiveMQListener;
+import io.mosip.print.listener.constant.LogMessageTypeConstant;
 import io.mosip.print.listener.constant.LoggerFileConstant;
+import io.mosip.print.listener.controller.base.FXComponents;
 import io.mosip.print.listener.dto.PrinterInfo;
 import io.mosip.print.listener.exception.ExceptionUtils;
 import io.mosip.print.listener.exception.PlatformErrorMessages;
@@ -30,14 +32,15 @@ import java.util.*;
 
 @Component
 public class PrinterUtil {
-    @Autowired
-    private ApplicationContext  applicationContext;
 
     @Autowired
     private ActiveMQListener activeMQListener;
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    FXComponents fxComponents;
 
     /** The print logger. */
     Logger clientLogger = PrintListenerLogger.getLogger(ClientServiceImpl.class);
@@ -76,7 +79,7 @@ public class PrinterUtil {
                     clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
                             LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed" ,
                                     PlatformErrorMessages.PRT_NOT_FOUND.getCode() + " " + PlatformErrorMessages.PRT_NOT_FOUND.getMessage());
-                    System.exit(1);
+                    //System.exit(1);
                 }
             } else {
                 clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -104,7 +107,7 @@ public class PrinterUtil {
 
             for (PrintService printService : printServices) {
                 if (printService.getName().equals(printerName)) {
-                    System.out.println("Printer Name " + printerName);
+                    PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Printer Name " + printerName);
                     printer = printService;
                     break;
                 }
@@ -127,8 +130,9 @@ public class PrinterUtil {
         } catch (Exception e) {
             clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "PrinterUtil","ERROR : " + e.getMessage());
             clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "PrinterUtil","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-            System.out.println("ERROR :" + e.getMessage());
-            System.exit(1);
+            PrintListenerLogger.println(LogMessageTypeConstant.ERROR, e.getMessage());
+
+            //System.exit(1);
         }
         return null;
     }
@@ -148,67 +152,54 @@ public class PrinterUtil {
         } catch(Exception e) {
             clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "PrinterUtil","ERROR : " + e.getMessage());
             clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "PrinterUtil","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
-            System.out.println("ERROR :" + e.getMessage());
-            System.exit(1);
+            PrintListenerLogger.println(LogMessageTypeConstant.ERROR, e.getMessage());
+            //System.exit(1);
         }
         return false;
     }
 
     public void printerHealthCheck() {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                String printerDetails = WMI4Java
-                        .get()
-                        .properties(Arrays.asList("Name", "Default", "PrinterPaperNames", "PrinterState", "PrinterStatus",
-                                "WorkOffline"))
-                        .getRawWMIObjectOutput(WMIClass.WIN32_PRINTER);
+        boolean printRequired  = env.getProperty("mosip.print.pdf.printing.required", boolean.class);
 
-                 String[] values = printerDetails.replace("\r", "").split("\\n");
+        if(printRequired) {
+            fxComponents.setTimer(new Timer("Print Health Check"));
+            fxComponents.getTimer().schedule(new TimerTask() {
 
-                String printerName = null;
-                for (String val : values) {
-                    if (!val.isEmpty()) {
-                        String key = val.split(":")[0].trim();
-                        String value = val.split(":")[1].trim();
+                @Override
+                public void run() {
+                    String printerDetails = WMI4Java
+                            .get()
+                            .properties(Arrays.asList("Name", "Default", "PrinterPaperNames", "PrinterState", "PrinterStatus",
+                                    "WorkOffline"))
+                            .getRawWMIObjectOutput(WMIClass.WIN32_PRINTER);
 
-                        if (key.equals("Name")) {
-                            printerName = value;
-                            if (!printerInfoMap.containsKey(printerName)) {
-                                PrinterInfo info = new PrinterInfo();
-                                info.setName(printerName);
-                                printerInfoMap.put(printerName, info);
+                    String[] values = printerDetails.replace("\r", "").split("\\n");
+
+                    String printerName = null;
+                    for (String val : values) {
+                        if (!val.isEmpty()) {
+                            String key = val.split(":")[0].trim();
+                            String value = val.split(":")[1].trim();
+
+                            if (key.equals("Name")) {
+                                printerName = value;
+                                if (!printerInfoMap.containsKey(printerName)) {
+                                    PrinterInfo info = new PrinterInfo();
+                                    info.setName(printerName);
+                                    printerInfoMap.put(printerName, info);
+                                }
                             }
+                            printerInfoMap.get(printerName).setValue(key, value);
                         }
-                        printerInfoMap.get(printerName).setValue(key, value);
                     }
+                    clientLogger.info(LoggerFileConstant.SESSIONID.toString(),
+                            LoggerFileConstant.REGISTRATIONID.toString(), "PRINTER HEALTH CHECK - " + new Date(), printerInfoMap.toString());
                 }
-                clientLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                        LoggerFileConstant.REGISTRATIONID.toString(), "PRINTER HEALTH CHECK - " + new Date(), printerInfoMap.toString());
-            }
-        };
-        try {
-            boolean printRequired  = env.getProperty("mosip.print.pdf.printing.required", boolean.class);
-
-            if(printRequired) {
-                Thread healthCheckThread = new Thread(runnable, "Printer Health Check");
-                healthCheckThread.setPriority(Thread.MAX_PRIORITY);
-                healthCheckThread.start();
-                Thread.sleep(10000);
-                isPrinterOnLine();
-                activeMQListener.runQueue();
-                while(true) {
-                    Thread healthCheckThread1 = new Thread(runnable, "Printer Health Check");
-                    healthCheckThread1.setPriority(Thread.MAX_PRIORITY);
-                    healthCheckThread1.start();
-                    Thread.sleep(10000);
-                }
-            } else {
-                activeMQListener.runQueue();
-            }
-        } catch (InterruptedException e) {
-            clientLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                    LoggerFileConstant.REGISTRATIONID.toString(), "PRINTER HEALTH CHECK - " + e.getMessage(), ExceptionUtils.getStackTrace(e));
+            }, 0, 1 * 5 * 1000);
+            isPrinterOnLine();
+            activeMQListener.runQueue();
+        } else {
+            activeMQListener.runQueue();
         }
     }
 }

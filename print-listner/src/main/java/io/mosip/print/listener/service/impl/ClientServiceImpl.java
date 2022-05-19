@@ -6,10 +6,12 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.util.ResourceBundle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.listener.activemq.ActiveMQListener;
+import io.mosip.print.listener.constant.LogMessageTypeConstant;
 import io.mosip.print.listener.constant.LoggerFileConstant;
 import io.mosip.print.listener.constant.PrintTransactionStatus;
 import io.mosip.print.listener.dto.MQResponseDto;
@@ -43,9 +45,6 @@ public class ClientServiceImpl implements ClientService {
 	private CryptoCoreUtil cryptoCoreUtil;
 
 	@Autowired
-	private ApplicationContext  applicationContext;
-
-	@Autowired
 	private ActiveMQListener activeMQListener;
 
 	@Autowired
@@ -64,18 +63,20 @@ public class ClientServiceImpl implements ClientService {
 	public void generateCard(EventModel eventModel) {
 
 		try {
-			System.out.println("Processing Message RID :  " + eventModel.getEvent().getId());
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Processing Message RID :  " + eventModel.getEvent().getId());
 			String dataShareUrl = eventModel.getEvent().getDataShareUri();
 			dataShareUrl = dataShareUrl.replace("http://", "https://");
 			URI dataShareUri = URI.create(dataShareUrl);
 			String credentials = restApiClient.getApi(dataShareUri, String.class);
-			System.out.println("Data Decryption Started RID :  " + eventModel.getEvent().getId());
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Data Decryption Started RID :  " + eventModel.getEvent().getId());
 			String decryptedData = cryptoCoreUtil.decrypt(credentials);
-			System.out.println("Data Decryption Completed RID :  " + eventModel.getEvent().getId());
+
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Data Decryption Completed RID :  " + eventModel.getEvent().getId());
 			String filePath = env.getProperty("partner.pdf.download.path");
 			if(!printerUtil.isPrintArchievePathExist()) {
 				InetAddress address = InetAddress.getLocalHost();
-				System.out.println("PDF Archieve Path not exist. Path : " + filePath + ", RID : " + eventModel.getEvent().getId());
+
+				PrintListenerLogger.println(LogMessageTypeConstant.ERROR, "PDF Archieve Path not exist. Path : " + filePath + ", RID : " + eventModel.getEvent().getId());
 
 				clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
@@ -92,13 +93,13 @@ public class ClientServiceImpl implements ClientService {
 			os.close();
 
 			boolean printRequired  = env.getProperty("mosip.print.pdf.printing.required", boolean.class);
-			System.out.println("Print Required :  " + printRequired);
-
+			PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Print Required :  " + printRequired);
 			if(printRequired) {
-				System.out.println("Print Started RID :  " + eventModel.getEvent().getId());
+				PrintListenerLogger.println(LogMessageTypeConstant.INFO, "Print Started RID :  " + eventModel.getEvent().getId());
 
 				if (printerUtil.initiatePrint(pdfFile.getName())) {
-					System.out.println("Print Completed Successfully RID :  " + eventModel.getEvent().getId());
+					PrintListenerLogger.println(LogMessageTypeConstant.SUCCESS, "Print Completed Successfully RID :  " + eventModel.getEvent().getId());
+
 					PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
 					printStatusRequestDto.setPrintStatus(PrintTransactionStatus.PRINTED);
 					printStatusRequestDto.setProcessedTime(DateUtils.getUTCCurrentDateTimeString());
@@ -115,7 +116,7 @@ public class ClientServiceImpl implements ClientService {
 							PrintTransactionStatus.PRINTED.toString(), null, "RID Printed Successfully"});
 					activeMQListener.sendToQueue(mqResponse, 1);
 				} else {
-					System.out.println("Print Failed RID :  " + eventModel.getEvent().getId());
+					PrintListenerLogger.println(LogMessageTypeConstant.ERROR, "Print Failed RID :  " + eventModel.getEvent().getId());
 
 					clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
@@ -123,7 +124,8 @@ public class ClientServiceImpl implements ClientService {
 					throw new Exception(PlatformErrorMessages.PRT_FAILED.getMessage());
 				}
 			} else {
-				System.out.println("Print Saved Locally Successfully RID :  " + eventModel.getEvent().getId());
+				PrintListenerLogger.println(LogMessageTypeConstant.SUCCESS, "Print Saved Locally Successfully RID :  " + eventModel.getEvent().getId());
+
 				PrintStatusRequestDto printStatusRequestDto = new PrintStatusRequestDto();
 				printStatusRequestDto.setPrintStatus(PrintTransactionStatus.SAVED_IN_LOCAL);
 				printStatusRequestDto.setProcessedTime(DateUtils.getUTCCurrentDateTimeString());
@@ -142,7 +144,7 @@ public class ClientServiceImpl implements ClientService {
 			}
 			CSVLogWriter.writePrintStatus();
 		} catch (Exception e) {
-			System.out.println("Error :  " + e.getMessage());
+			PrintListenerLogger.println(LogMessageTypeConstant.ERROR, e.getMessage());
 			clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR : " + e.getMessage());
 			clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 
@@ -166,11 +168,12 @@ public class ClientServiceImpl implements ClientService {
 
 				activeMQListener.sendToQueue(mqResponse, 1);
 			} catch (Exception ex) {
+				PrintListenerLogger.println(LogMessageTypeConstant.ERROR, ex.getMessage());
 				clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR : " + e.getMessage());
 				clientLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "ClientServiceImpl","ERROR MESSAGE : " + ExceptionUtils.getStackTrace(e));
 				CSVLogWriter.writePrintStatus();
 			}
-			System.exit(1);
+			//System.exit(1);
 		}
 	}
 }

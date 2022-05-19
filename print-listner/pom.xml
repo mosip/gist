@@ -27,6 +27,7 @@
         <commons-lang3>3.7</commons-lang3>
         <bouncycastle.version>1.67</bouncycastle.version>
         <kernel.core.version>1.1.4</kernel.core.version>
+        <openjfx.version>11.0.2</openjfx.version>
     </properties>
 
     <dependencies>
@@ -167,6 +168,17 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${openjfx.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-fxml -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>15-ea+4</version>
         </dependency>
     </dependencies>
 

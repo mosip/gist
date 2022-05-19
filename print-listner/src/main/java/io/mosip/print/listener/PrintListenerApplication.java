@@ -1,25 +1,74 @@
 package io.mosip.print.listener;
 
-import io.mosip.print.listener.activemq.ActiveMQListener;
+import io.mosip.print.listener.controller.HomeController;
+import io.mosip.print.listener.controller.base.FXComponents;
+import io.mosip.print.listener.util.ApplicationResourceContext;
 import io.mosip.print.listener.util.PrinterUtil;
-import org.springframework.boot.SpringApplication;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.stage.Stage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import java.util.Timer;
+
 @SpringBootApplication (exclude = {SecurityAutoConfiguration.class})
-public class PrintListenerApplication {
+public class PrintListenerApplication extends Application {
 
     @Bean
     public ThreadPoolTaskScheduler getTaskScheduler() {
         return new ThreadPoolTaskScheduler();
     }
 
+    private ConfigurableApplicationContext context;
+    FXMLLoader loader = new FXMLLoader();
+
     public static void main(String[] args) {
-        ConfigurableApplicationContext configurableApplicationContext = SpringApplication.run(PrintListenerApplication.class, args);
-            configurableApplicationContext.getBean(PrinterUtil.class).isPrintArchievePathExist();
-        configurableApplicationContext.getBean(PrinterUtil.class).printerHealthCheck();
+        System.setProperty("java.net.useSystemProxies", "true");
+        System.setProperty("file.encoding", "UTF-8");
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        ApplicationResourceContext.getInstance();
+        HomeController controller = ApplicationResourceContext.getInstance().getApplicationContext().getBean(HomeController.class);
+        controller.showUserNameScreen(primaryStage);
+        ApplicationResourceContext.getInstance().getApplicationContext().getBean(PrinterUtil.class).isPrintArchievePathExist();
+        ApplicationResourceContext.getInstance().getApplicationContext().getBean(PrinterUtil.class).printerHealthCheck();
+    }
+
+    @Override
+    public void init() throws Exception {
+        SpringApplicationBuilder builder = new SpringApplicationBuilder(PrintListenerApplication.class);
+        context = builder.run(getParameters().getRaw().toArray(new String[0]));
+        ApplicationResourceContext.getInstance().setApplicationLanguage(context.getEnvironment().getProperty("mosip.primary-language"));
+        ApplicationResourceContext.getInstance().setApplicationSupportedLanguage(context.getEnvironment().getProperty("mosip.supported-languages"));
+        ApplicationResourceContext.getInstance().setApplicationContext(context);
+
+//        loader.setControllerFactory(context::getBean);
+
+//        loader.setResources(ApplicationResourceContext.getInstance().getLabelBundle());
+//        root = loader.load(this.getClass().getClassLoader().getResourceAsStream("fxml/HomePage.fxml"));
+//        context.close();
+
+  //      ConfigurableApplicationContext configurableApplicationContext = SpringApplication.run(PrintListenerApplication.class, args);
+   //     configurableApplicationContext.getBean(PrinterUtil.class).isPrintArchievePathExist();
+   //     configurableApplicationContext.getBean(PrinterUtil.class).printerHealthCheck();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        FXComponents fxComponents =  ApplicationResourceContext.getInstance().getApplicationContext().getBean(FXComponents.class);
+        fxComponents.getTimer().cancel();
+        fxComponents.getTimer().purge();
+        fxComponents.getTimeline().stop();
+        fxComponents.getStage().close();
+        System.exit(1);
     }
 }
