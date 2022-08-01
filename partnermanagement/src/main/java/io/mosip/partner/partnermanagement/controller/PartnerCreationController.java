@@ -659,8 +659,14 @@ public class PartnerCreationController {
                 }
             } else {
                 ResponseWrapper wrapper = (ResponseWrapper) mispResonseModel.getResponseData();
-                MISPResponseModel mispData = (MISPResponseModel) wrapper.getResponse();
-                partnerDetailResponseModel.setPartnerMISPLicenseKey(mispData.getLicenseKey());
+
+                if(partnerDetailModel.getEnvironmentVersion().equals(APITypes.NONLTS)) {
+                    MISPResponseModel mispData = (MISPResponseModel) wrapper.getResponse();
+                    partnerDetailResponseModel.setPartnerMISPLicenseKey(mispData.getLicenseKey());
+                } else {
+                    LinkedHashMap<String, String> mapValue = (LinkedHashMap<String, String>) wrapper.getResponse();
+                    partnerDetailResponseModel.setPartnerMISPLicenseKey(mapValue.get("licenseKey"));
+                }
             }
         }
         return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.OK);
