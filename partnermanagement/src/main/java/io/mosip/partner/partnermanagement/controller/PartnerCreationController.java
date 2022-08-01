@@ -552,7 +552,7 @@ public class PartnerCreationController {
                 restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, partnerAdminLoginrequestWrapper);
                 System.setProperty("token", "");
 
-/*                // Approve PolicyMap API
+                // Approve PolicyMap API
                 PolicyMapApproveRequestData approveRequestData = new PolicyMapApproveRequestData();
                 approveRequestData.setStatus("approved");
                 RequestWrapper<Object> apiApproveRequestWrapper = createRequestWrapper(approveRequestData);
@@ -564,7 +564,7 @@ public class PartnerCreationController {
                     if (!wrapper.canBeIgnored()) {
                         return new ResponseEntity<PartnerDetailResponseModel>(partnerDetailResponseModel, HttpStatus.EXPECTATION_FAILED);
                     }
-                }*/
+                }
             }
 
             logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
@@ -780,7 +780,7 @@ public class PartnerCreationController {
             ResponseWrapper wrapper = (ResponseWrapper) partnerCertUploadResponse.getResponseData();
             LinkedHashMap<String, String> partnerCertificateResponseData = (LinkedHashMap<String, String>) wrapper.getResponse();
             String signedCertificate = partnerCertificateResponseData.get("signedCertificateData");
-            if(!partnerCreationService.updateSignedCertificateintoPartnerP12(signedCertificate, partnerModel.getPartnerType().getFilePrepend(), partnerModel.getPartnerOrganizationName())) {
+            if(!partnerCreationService.updateSignedCertificateintoPartnerP12(signedCertificate, partnerModel.getPartnerType().getFilePrepend(), partnerModel.getPartnerId())) {
                 partnerCertUploadResponse.setStatus(LoggerFileConstant.FAIL);
                 partnerCertUploadResponse.setMessage("Update Signed Certificate with Partner P12 failed");
             }

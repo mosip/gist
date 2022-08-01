@@ -207,7 +207,7 @@ public class RestApiClient {
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
 
 			response = (ResponseEntity<T>) restTemplate.exchange(uri, HttpMethod.PUT,
-					setRequestHeader(requestType.toString(), mediaType), responseClass);
+					setRequestHeader(requestType, mediaType), responseClass);
 			result = response.getBody();
 		} catch (Exception e) {
 
@@ -257,6 +257,7 @@ public class RestApiClient {
 	private HttpEntity<Object> setRequestHeader(Object requestType, MediaType mediaType) throws IOException {
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
 		headers.add("Cookie", getToken());
+		headers.add("accept", "*/*");
 		if (mediaType != null) {
 			headers.add("Content-Type", mediaType.toString());
 		}
