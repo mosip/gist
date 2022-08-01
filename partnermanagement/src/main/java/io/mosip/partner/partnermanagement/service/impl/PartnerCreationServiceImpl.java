@@ -83,7 +83,7 @@ public class PartnerCreationServiceImpl implements PartnerCreationService {
         CertificateChainResponseDto certificateChainResponseDto = null;
         ResponseModel responseModel;
         try {
-            certificateChainResponseDto = keyMgrUtil.getPartnerCertificates(filePrepend, keyMgrUtil.getKeysDirPath(partnerOrganization), partnerId);
+            certificateChainResponseDto = keyMgrUtil.getPartnerCertificates(filePrepend, keyMgrUtil.getKeysDirPath(partnerId), partnerOrganization);
 
             responseModel = new ResponseModel(PartnerManagementConstants.CERTIFICATE_GENERATED);
             responseModel.setResponseData(certificateChainResponseDto);

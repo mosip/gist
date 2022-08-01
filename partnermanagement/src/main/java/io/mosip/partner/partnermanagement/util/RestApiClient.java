@@ -207,7 +207,7 @@ public class RestApiClient {
 					LoggerFileConstant.APPLICATIONID.toString(), uri);
 
 			response = (ResponseEntity<T>) restTemplate.exchange(uri, HttpMethod.PUT,
-					setRequestHeader(requestType.toString(), mediaType), responseClass);
+					setRequestHeader(requestType, mediaType), responseClass);
 			result = response.getBody();
 		} catch (Exception e) {
 
