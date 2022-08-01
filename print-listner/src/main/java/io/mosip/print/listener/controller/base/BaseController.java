@@ -28,6 +28,8 @@ public class BaseController {
 
     protected Scene scene;
 
+    public static Boolean isPrinterOnline;
+
     /**
      * Loading FXML files along with beans.
      *
@@ -62,5 +64,13 @@ public class BaseController {
 
     protected String getCssName() {
         return RegistrationConstants.CSS_PATH;
+    }
+
+    public static Boolean getPrinterOnline() {
+        return isPrinterOnline;
+    }
+
+    public static void setPrinterOnline(Boolean printerOnline) {
+        isPrinterOnline = printerOnline;
     }
 }

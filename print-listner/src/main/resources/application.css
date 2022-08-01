@@ -1,0 +1,10 @@
+.printeronline {
+    -fx-border-radius: 25px;
+    -fx-background-radius: 25px;
+    -fx-background-color: #098207;
+}
+.printeroffline {
+    -fx-border-radius: 25px;
+    -fx-background-radius: 25px;
+    -fx-background-color: #de1d20;
+}

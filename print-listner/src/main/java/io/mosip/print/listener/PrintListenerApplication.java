@@ -61,6 +61,7 @@ public class PrintListenerApplication extends Application {
         fxComponents.getTimer().cancel();
         fxComponents.getTimer().purge();
         fxComponents.getTimeline().stop();
+        fxComponents.getPrinterOnlineCheckTimerline().stop();
         fxComponents.getStage().close();
         System.exit(1);
     }

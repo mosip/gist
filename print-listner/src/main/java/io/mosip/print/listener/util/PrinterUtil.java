@@ -6,6 +6,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.listener.activemq.ActiveMQListener;
 import io.mosip.print.listener.constant.LogMessageTypeConstant;
 import io.mosip.print.listener.constant.LoggerFileConstant;
+import io.mosip.print.listener.controller.base.BaseController;
 import io.mosip.print.listener.controller.base.FXComponents;
 import io.mosip.print.listener.dto.PrinterInfo;
 import io.mosip.print.listener.exception.ExceptionUtils;
@@ -97,6 +98,7 @@ public class PrinterUtil {
 
     public PrintService isPrinterOnLine() {
         try {
+            BaseController.setPrinterOnline(false);
             PrintService[] printServices = PrintServiceLookup.lookupPrintServices(null, null);
             PrintService printer = null;
             String printerName = env.getProperty("partner.printer.name");
@@ -107,8 +109,8 @@ public class PrinterUtil {
 
             for (PrintService printService : printServices) {
                 if (printService.getName().equals(printerName)) {
-                    PrintListenerLogger.println(LogMessageTypeConstant.INFO,
-                            String.format(ApplicationResourceContext.getInstance().getLabelBundle().getString("message.printer.name"), printerName));
+//                    PrintListenerLogger.println(LogMessageTypeConstant.INFO,
+ //                           String.format(ApplicationResourceContext.getInstance().getLabelBundle().getString("message.printer.name"), printerName));
                     printer = printService;
                     break;
                 }
@@ -118,6 +120,7 @@ public class PrinterUtil {
         if (printerInfoMap.containsKey(printerName)) {
             PrinterInfo info = printerInfoMap.get(printerName);
             if (info.getWorkOffline().toLowerCase().equals("false")) {
+                        BaseController.setPrinterOnline(true);
                         return printer;
             } else {
                         throw  new Exception(ApplicationResourceContext.getInstance().getLabelBundle().getString(PlatformErrorMessages.PRT_OFFLINE.getCode()));
@@ -195,9 +198,9 @@ public class PrinterUtil {
                     }
                     clientLogger.info(LoggerFileConstant.SESSIONID.toString(),
                             LoggerFileConstant.REGISTRATIONID.toString(), "PRINTER HEALTH CHECK - " + new Date(), printerInfoMap.toString());
+                    isPrinterOnLine();
                 }
             }, 0, 1 * 5 * 1000);
-            isPrinterOnLine();
             activeMQListener.runQueue();
         } else {
             activeMQListener.runQueue();
