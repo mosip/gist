@@ -1,7 +1,7 @@
 {
     "printMQ": [{
         "name": "PRINT LISTENER",
-        "brokerUrl": "tcp://togo-sandbox.mosip.net:30616",
+        "brokerUrl": "tcp://dev2.mosip.net:61616",
         "inboundQueueName": "print-to-printlistener",
         "outboundQueueName": "printlistener-to-print",
         "userName": "admin",

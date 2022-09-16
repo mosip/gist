@@ -77,7 +77,8 @@ public enum PlatformErrorMessages {
 	PRT_OFFLINE(PlatformConstants.PRT_PRINT_PREFIX + "032", "Printer is Offline"),
 	PRT_NOT_FOUND(PlatformConstants.PRT_PRINT_PREFIX + "033", "Printer Name not found in Printer List"),
 	PRT_PATH_NOT_FOUND(PlatformConstants.PRT_PRINT_PREFIX + "034", "PDF Archieve Path not exist."),
-	PDF_NOT_FOUND(PlatformConstants.PRT_PRINT_PREFIX + "035", "PDF file not found.");
+	PDF_NOT_FOUND(PlatformConstants.PRT_PRINT_PREFIX + "035", "PDF file not found."),
+	PRT_UNKNOWN_DECRYPTION_EXCEPTION(PlatformConstants.PRT_PRINT_PREFIX + "029", "Unknown Error in data decryption.");
 
 
 

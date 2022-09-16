@@ -36,6 +36,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 
 import io.mosip.print.listener.constant.DateUtilConstants;
 import io.mosip.print.listener.exception.IllegalArgumentException;
+import org.springframework.stereotype.Component;
 
 /**
  * Utilities for Date Time operations.
@@ -47,6 +48,7 @@ import io.mosip.print.listener.exception.IllegalArgumentException;
  * @author Bal Vikash Sharma
  * @since 1.0.0
  */
+@Component
 public final class DateUtils {
 
 	/**

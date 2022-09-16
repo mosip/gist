@@ -6,12 +6,16 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.print.listener.activemq.ActiveMQListener;
 import io.mosip.print.listener.constant.LoggerFileConstant;
 import io.mosip.print.listener.constant.PrintTransactionStatus;
+import io.mosip.print.listener.dto.DecryptRequestDto;
 import io.mosip.print.listener.dto.MQResponseDto;
 import io.mosip.print.listener.dto.PrintStatusRequestDto;
 import io.mosip.print.listener.entity.PrintTracker;
@@ -29,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +59,15 @@ public class ClientServiceImpl implements ClientService {
 	@Autowired
 	private Environment env;
 
+	@Autowired
+	private DateUtils dateUtils;
+
+	@Value("${mosip.printlistener.partner.application.id:RESIDENT}")
+	private String APPLICATION_ID;
+
+	@Value("${mosip.printlistener.partner.reference.id}")
+	private String REFERENCE_ID;
+
 	/** The print logger. */
 	Logger clientLogger = PrintListenerLogger.getLogger(ClientServiceImpl.class);
 
@@ -66,11 +80,19 @@ public class ClientServiceImpl implements ClientService {
 		try {
 			System.out.println("Processing Message RID :  " + eventModel.getEvent().getId());
 			String dataShareUrl = eventModel.getEvent().getDataShareUri();
-			dataShareUrl = dataShareUrl.replace("http://", "https://");
 			URI dataShareUri = URI.create(dataShareUrl);
 			String credentials = restApiClient.getApi(dataShareUri, String.class);
 			System.out.println("Data Decryption Started RID :  " + eventModel.getEvent().getId());
-			String decryptedData = cryptoCoreUtil.decrypt(credentials);
+			DecryptRequestDto decryptRequestDto = new DecryptRequestDto();
+			decryptRequestDto.setApplicationId(APPLICATION_ID);
+			decryptRequestDto.setReferenceId(REFERENCE_ID);
+			decryptRequestDto.setTimeStamp(dateUtils.formatToISOString(dateUtils.getUTCCurrentDateTime()));
+			decryptRequestDto.setData(credentials);
+			RequestWrapper<DecryptRequestDto> request = new RequestWrapper();
+			request.setRequest(decryptRequestDto);
+			ResponseWrapper<LinkedHashMap> response=  restApiClient.postApi(env.getProperty("mosip.printlistener.credential.decrypt.url"), MediaType.APPLICATION_JSON, request, ResponseWrapper.class);
+			String decryptedData = (String) response.getResponse().get("data");
+			//			String decryptedData = cryptoCoreUtil.decrypt(credentials);
 			System.out.println("Data Decryption Completed RID :  " + eventModel.getEvent().getId());
 			String filePath = env.getProperty("partner.pdf.download.path");
 			if(!printerUtil.isPrintArchievePathExist()) {
@@ -119,7 +141,7 @@ public class ClientServiceImpl implements ClientService {
 
 					clientLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), "Print Failed",
-							PlatformErrorMessages.PRT_FAILED.name());
+									PlatformErrorMessages.PRT_FAILED.name());
 					throw new Exception(PlatformErrorMessages.PRT_FAILED.getMessage());
 				}
 			} else {
