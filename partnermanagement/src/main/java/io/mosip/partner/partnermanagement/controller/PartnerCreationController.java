@@ -61,7 +61,9 @@ public class PartnerCreationController {
         logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
         LoginUser request = new LoginUser(env.getProperty(ParameterConstant.AUTHENTICATION_USERID.toString()),
                 env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
-                env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()));
+                env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()),
+                env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_ID.toString()),
+                env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_SECRET.toString()));
 
         RequestWrapper<Object> requestWrapper = createRequestWrapper(request);
         restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, requestWrapper);
@@ -340,7 +342,9 @@ public class PartnerCreationController {
         logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
         LoginUser request = new LoginUser(env.getProperty(ParameterConstant.AUTHENTICATION_USERID.toString()),
                 env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
-                env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()));
+                env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()),
+                env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_ID.toString()),
+                env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_SECRET.toString()));
 
         RequestWrapper<Object> requestWrapper = createRequestWrapper(request);
         restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, requestWrapper);
@@ -468,7 +472,9 @@ public class PartnerCreationController {
         logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
         LoginUser request = new LoginUser(env.getProperty(ParameterConstant.AUTHENTICATION_USERID.toString()),
                 env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
-                env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()));
+                env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()),
+                env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_ID.toString()),
+                env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_SECRET.toString()));
 
         RequestWrapper<Object> requestWrapper = createRequestWrapper(request);
         restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, requestWrapper);
@@ -517,7 +523,9 @@ public class PartnerCreationController {
             logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
             LoginUser partnerLoginrequest = new LoginUser(partnerDetailModel.getPartnerModel().getPartnerId().toLowerCase(),
                     env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
-                    env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()));
+                    env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()),
+                    env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_ID.toString()),
+                    env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_SECRET.toString()));
 
             RequestWrapper<Object> partnerLoginrequestWrapper = createRequestWrapper(partnerLoginrequest);
             restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, partnerLoginrequestWrapper);
@@ -546,7 +554,9 @@ public class PartnerCreationController {
                 logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
                 LoginUser partnerAdminLoginrequest = new LoginUser(env.getProperty(ParameterConstant.AUTHENTICATION_USERID.toString()),
                         env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
-                        env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()));
+                        env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()),
+                        env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_ID.toString()),
+                        env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_SECRET.toString()));
 
                 RequestWrapper<Object> partnerAdminLoginrequestWrapper = createRequestWrapper(partnerAdminLoginrequest);
                 restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, partnerAdminLoginrequestWrapper);
@@ -604,7 +614,9 @@ public class PartnerCreationController {
                 logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
                 LoginUser partnerAdminLoginrequest = new LoginUser(env.getProperty(ParameterConstant.AUTHENTICATION_USERID.toString()),
                         env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
-                        env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()));
+                        env.getProperty(ParameterConstant.AUTHENTICATION_APPID.toString()),
+                        env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_ID.toString()),
+                        env.getProperty(ParameterConstant.AUTHENTICATION_CLIENT_SECRET.toString()));
 
                 RequestWrapper<Object> partnerAdminLoginrequestWrapper = createRequestWrapper(partnerAdminLoginrequest);
                 restApiClient.setLoginRequestData(LoginType.LOGIN_BY_USERID, partnerAdminLoginrequestWrapper);

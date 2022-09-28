@@ -13,8 +13,9 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class LoginUser {
-
 	private String userName;
 	private String password;
 	private String appId;
+	private String clientId;
+	private String clientSecret;
 }

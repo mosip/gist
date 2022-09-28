@@ -8,14 +8,23 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 import javax.net.ssl.SSLContext;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.google.gson.JsonParser;
+import com.google.gson.internal.LinkedTreeMap;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.partner.partnermanagement.constant.LoginType;
 import io.mosip.partner.partnermanagement.constant.ParameterConstant;
 import io.mosip.partner.partnermanagement.logger.PartnerManagementLogger;
+import io.mosip.partner.partnermanagement.model.authmodel.AuthNResponseDto;
+import io.mosip.partner.partnermanagement.model.authmodel.AuthResponseWrapper;
 import io.mosip.partner.partnermanagement.model.authmodel.LoginUser;
 import io.mosip.partner.partnermanagement.model.http.RequestWrapper;
+import io.mosip.partner.partnermanagement.model.http.ResponseWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
@@ -312,12 +321,12 @@ public class RestApiClient {
 			HttpResponse response = httpClient.execute(post);
 			org.apache.http.HttpEntity entity = response.getEntity();
 			String responseBody = EntityUtils.toString(entity, "UTF-8");
-			Header[] cookie = response.getHeaders("Set-Cookie");
-			if (cookie.length == 0)
-				throw new TokenGenerationFailedException();
-			token = response.getHeaders("Set-Cookie")[0].getValue();
-				System.setProperty("token", token.substring(14, token.indexOf(';')));
-			return token.substring(0, token.indexOf(';'));
+			ObjectMapper mapper = new ObjectMapper();
+			AuthResponseWrapper<LinkedTreeMap> authResponseWrapper = gson.fromJson(responseBody, AuthResponseWrapper.class);
+			LinkedTreeMap<String, String> authNResponseDto = authResponseWrapper.getResponse();
+			token = authNResponseDto.get("token");
+			System.setProperty("token", token);
+			return AUTHORIZATION + token;
 		} catch (IOException e) {
 			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
 					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));

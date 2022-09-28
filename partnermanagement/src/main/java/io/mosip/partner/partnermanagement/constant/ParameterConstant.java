@@ -22,7 +22,9 @@ public enum ParameterConstant {
     PARTNER_IDA_CA_CERTIFICATE_UPLOAD("mosip.ida.ca.certificate.upload.api"),
     GENERATE_MISP_LICENSE_KEY("mosip.partner.generate.misp.license"),
     PARTNER_POLICY_MAPPING_REQUEST("mosip.partner.policy.map.api"),
-    PARTNER_POLICY_MAPPING_APPROVAL("mosip.partner.policy.map.approval.api");
+    PARTNER_POLICY_MAPPING_APPROVAL("mosip.partner.policy.map.approval.api"),
+    AUTHENTICATION_CLIENT_ID("mosip.authenticate.client.id"),
+    AUTHENTICATION_CLIENT_SECRET("mosip.authenticate.client.secretkey");
 
 
     private final String value;
