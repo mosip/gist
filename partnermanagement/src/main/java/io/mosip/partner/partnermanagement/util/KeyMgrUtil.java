@@ -105,7 +105,7 @@ public class KeyMgrUtil {
 
         String caFilePath = dirPath  + '/' + partnerType + CA_P12_FILE_NAME;
         LocalDateTime dateTime = LocalDateTime.now(); 
-        LocalDateTime dateTimeExp = dateTime.plusYears(1);
+        LocalDateTime dateTimeExp = dateTime.plusYears(5);
         PrivateKeyEntry caPrivKeyEntry = getPrivateKeyEntry(caFilePath);
         KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyCertSign);
         if (Objects.isNull(caPrivKeyEntry)) {
@@ -267,7 +267,7 @@ public class KeyMgrUtil {
             String partnerFilePath = dirPath + '/' + filePrepend + PARTNER_P12_FILE_NAME;
             PrivateKeyEntry pKeyEntry = getPrivateKeyEntry(partnerFilePath);
             LocalDateTime dateTime = LocalDateTime.now(); 
-            LocalDateTime dateTimeExp = dateTime.plusMonths(1);
+            LocalDateTime dateTimeExp = dateTime.plusMonths(5);
             KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyCertSign);
            
             X500Principal signerPrincipal = ((X509Certificate)pKeyEntry.getCertificate()).getSubjectX500Principal();
