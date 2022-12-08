@@ -2,7 +2,7 @@
 						eKYC Client
 						----------------
 	
-	This sample code shows how to build and make client request foor otp based ekyc auth request
+	This sample code shows how to build and make client request for otp based ekyc auth request
 	This assumes you have already onbordeed the  ekyc partner ( Auth Partner type) and  also got MISP License key
 	We need Partner ID, Partner Key and MISP License key
 	Update these details into application.properties file
