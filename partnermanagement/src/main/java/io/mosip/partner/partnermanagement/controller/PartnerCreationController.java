@@ -519,7 +519,9 @@ public class PartnerCreationController {
             partnerDetailResponseModel.setSignedCertificate(partnerCertificateResponseData.get("signedCertificateData"));
         }
 
-        if (partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.AUTH)) {
+        if (partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.AUTH) ||
+                partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.ABIS) ||
+                partnerDetailModel.getPartnerModel().getPartnerType().equals(PartnerTypes.ADJUDICATION)) {
             logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),  "Authenticate With AuthService");
             LoginUser partnerLoginrequest = new LoginUser(partnerDetailModel.getPartnerModel().getPartnerId().toLowerCase(),
                     env.getProperty(ParameterConstant.AUTHENTICATION_PASSWORD.toString()),
